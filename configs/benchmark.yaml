@@ -1,0 +1,11 @@
+{
+  "benchmark_version": "0.1.0",
+  "base_seed": 20260825,
+  "default_repetitions": 3,
+  "max_tokens": 700,
+  "timeout_seconds": 90,
+  "retry_attempts": 1,
+  "composite_weights": null,
+  "smoke_task_count": 8
+}
+

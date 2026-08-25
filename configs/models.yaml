@@ -1,0 +1,39 @@
+{
+  "models": [
+    {
+      "name": "gpt-5.6-sol",
+      "provider": "agentrouter",
+      "model_id": "gpt-5.6-sol",
+      "api_key_env": "AGENTROUTER_GPT_5_6_SOL_API_KEY",
+      "route_tool": "reasoningdelegationhigh",
+      "route_field": "query",
+      "identity_status": "externally_asserted"
+    },
+    {
+      "name": "deepseek-v4-flash",
+      "provider": "agentrouter",
+      "model_id": "deepseek-v4-flash",
+      "api_key_env": "AGENTROUTER_DEEPSEEK_V4_FLASH_API_KEY",
+      "route_tool": "reasoningdelegationlow",
+      "route_field": "task",
+      "identity_status": "externally_asserted"
+    },
+    {
+      "name": "claude-opus-5",
+      "provider": "agentrouter",
+      "model_id": "claude-opus-5",
+      "api_key_env": "AGENTROUTER_CLAUDE_OPUS_5_API_KEY",
+      "route_tool": "reasoningdelegationmedium",
+      "route_field": "task",
+      "identity_status": "externally_asserted"
+    },
+    {
+      "name": "x0alpha",
+      "provider": "openrouter",
+      "model_id": "stealth/ox-alpha",
+      "api_key_env": "OPENROUTER_API_KEY",
+      "identity_status": "provider_catalog"
+    }
+  ]
+}
+
