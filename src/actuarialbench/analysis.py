@@ -72,9 +72,9 @@ def _paired_scores(scores: list[dict[str, Any]], left: str, right: str) -> np.nd
     )
 
 
-def _bootstrap_mean_ci(values: np.ndarray, samples: int) -> tuple[float, float]:
+def _bootstrap_mean_ci(values: np.ndarray, samples: int) -> tuple[float | None, float | None]:
     if values.size == 0:
-        return (float("nan"), float("nan"))
+        return (None, None)
     rng = np.random.default_rng(20260825)
     draws = rng.choice(values, size=(samples, values.size), replace=True).mean(axis=1)
     return float(np.quantile(draws, 0.025)), float(np.quantile(draws, 0.975))
