@@ -227,7 +227,8 @@ def _manifest(
             "fresh_context_per_task": True,
             "temperature": 0,
             "agentrouter_model_identity": "externally_asserted",
-            "lowest_common_denominator_note": "AgentRouter uses one combined text prompt and exposes no documented model/max-token field.",
+            "agentrouter_transport": "documented OpenAI Responses or Anthropic Messages API selected per model",
+            "lowest_common_denominator_note": "AgentRouter routes and model availability remain provider-controlled; unsupported labels are recorded as provider failures.",
         },
     }
 

@@ -12,12 +12,12 @@ Configured routes are:
 
 | Label | Provider route | Identity note |
 | --- | --- | --- |
-| `gpt-5.6-sol` | AgentRouter MCP | externally asserted route identity |
-| `deepseek-v4-flash` | AgentRouter MCP | externally asserted route identity |
-| `claude-opus-5` | AgentRouter MCP | externally asserted route identity |
+| `gpt-5.6-sol` | AgentRouter OpenAI Responses API | externally asserted route identity |
+| `deepseek-v4-flash` | AgentRouter OpenAI Responses API | externally asserted route identity |
+| `claude-opus-5` | AgentRouter Anthropic Messages API | externally asserted route identity |
 | `x0alpha` | OpenRouter `stealth/ox-alpha` | provider catalog ID |
 
-AgentRouter is a tool-routing endpoint, not a documented direct model API. This is recorded as a protocol limitation; the project does not claim that the AgentRouter labels are independently verified model identities.
+AgentRouter documents OpenAI-compatible (`/v1/responses`) and Anthropic-compatible (`/v1/messages`) transports. It remains a provider-controlled routing layer, so labels are externally asserted rather than independently verified model identities.
 
 ## Reproduce locally
 
@@ -28,7 +28,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Copy `.env.example` to `.env` and export the corresponding variables in the shell. Never copy keys from `Desktop\apis.txt` into source or commit history.
+Copy `.env.example` to `.env` and export the corresponding variables in the shell. The AgentRouter documentation requires a key issued for AgentRouter's compatible API; a key that looks syntactically valid can still receive `401 UNAUTHENTICATED` until authorized by the provider. Never copy keys from `Desktop\apis.txt` into source or commit history.
 
 Run the bounded smoke benchmark (one repetition, eight tasks, four configured routes; 60-second timeout and one bounded retry):
 
@@ -68,10 +68,11 @@ python run_benchmark.py --repetitions 3
 ## Major audit risks
 
 1. AgentRouter can change or hide the underlying model route, so model-level attribution is weaker than the OpenRouter catalog route.
-2. A combined single-text prompt is used because AgentRouter does not document a system-role equivalent; this is recorded as a lowest-common-denominator limitation.
-3. The 48-task bank is an initial portfolio study, not enough evidence for a production model-risk conclusion without review of task quality and a frozen experiment manifest.
-4. Cost is reported only when the provider supplies it; unknown pricing is never invented.
-5. Restricted subprocess execution reduces risk but is not equivalent to container isolation. Do not run untrusted benchmark code on sensitive hosts without stronger isolation.
+2. OpenAI-compatible routes use a combined text prompt, while the Claude route preserves a separate system message. Provider routing and model availability can change.
+3. AgentRouter direct API authentication is provider-controlled; rejected keys are recorded as API failures and excluded from capability scores.
+4. The 48-task bank is an initial portfolio study, not enough evidence for a production model-risk conclusion without review of task quality and a frozen experiment manifest.
+5. Cost is reported only when the provider supplies it; unknown pricing is never invented.
+6. Restricted subprocess execution reduces risk but is not equivalent to container isolation. Do not run untrusted benchmark code on sensitive hosts without stronger isolation.
 
 ## Report
 

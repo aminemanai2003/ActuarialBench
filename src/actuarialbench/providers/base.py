@@ -83,6 +83,8 @@ class ProviderClient(ABC):
                 "User-Agent": "ActuarialBench/0.1",
             },
         )
+        if self.config.provider == "agentrouter" and getattr(self.config, "api_style", None) == "anthropic":
+            request.add_header("anthropic-version", "2023-06-01")
         try:
             with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
                 raw = response.read().decode("utf-8")

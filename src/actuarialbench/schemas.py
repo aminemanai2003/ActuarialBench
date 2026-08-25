@@ -17,8 +17,8 @@ class ModelConfig:
     model_id: str
     api_key_env: str
     identity_status: str
-    route_tool: str | None = None
-    route_field: str | None = None
+    api_style: str | None = None
+    base_url_env: str | None = None
 
 
 @dataclass(frozen=True)

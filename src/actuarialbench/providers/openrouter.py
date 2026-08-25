@@ -88,4 +88,6 @@ def _content_to_text(content: object) -> str:
         text = "".join(parts)
         if text:
             return text
+    if content is None:
+        raise ProviderError("OpenRouter returned no visible text (the response may have exhausted its reasoning/output limit)")
     raise ProviderError("OpenRouter returned non-text message content")

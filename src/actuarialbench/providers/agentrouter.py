@@ -1,94 +1,83 @@
-"""AgentRouter MCP adapter with explicit route metadata."""
+"""AgentRouter direct OpenAI- and Anthropic-compatible API adapters."""
 
 from __future__ import annotations
 
 import os
-import re
 import time
-from typing import Any
 
 from actuarialbench.providers.base import ProviderClient, ProviderError
 from actuarialbench.schemas import ProviderResponse
 
-_TASK_ID = re.compile(r"TASK_ID:\s*([0-9a-f-]+)", re.IGNORECASE)
-_RESULT = re.compile(r"RESULT:\s*(.*)\Z", re.IGNORECASE | re.DOTALL)
-
 
 class AgentRouterClient(ProviderClient):
-    """Call one configured AgentRouter MCP tool as a model route."""
+    """Call the documented AgentRouter transport selected in model config."""
 
-    def generate(
-        self,
-        *,
-        system_prompt: str,
-        user_prompt: str,
-        max_tokens: int,
-        task_id: str,
-        run_id: str,
-    ) -> ProviderResponse:
-        del max_tokens  # AgentRouter's documented MCP route exposes no output-token cap.
-        if not self.config.route_tool or not self.config.route_field:
-            raise ProviderError(f"AgentRouter route is incomplete for {self.config.name}")
-
+    def generate(self, *, system_prompt: str, user_prompt: str, max_tokens: int,
+                 task_id: str, run_id: str) -> ProviderResponse:
+        style = self.config.api_style or "openai"
         started = time.perf_counter()
-        prompt = self.combined_prompt(system_prompt, user_prompt)
-        result_text = self._call_tool(
-            self.config.route_tool,
-            {"payload": {self.config.route_field: prompt}},
-        )
-        if "STATUS: RUNNING" in result_text.upper():
-            match = _TASK_ID.search(result_text)
-            if not match:
-                raise ProviderError("AgentRouter returned RUNNING without a task ID")
-            result_text = self._call_tool(
-                "wait_for_task",
-                {"task_id": match.group(1), "max_wait_seconds": self.timeout_seconds},
+        if style == "openai":
+            payload, _ = self.post_json(
+                f"{self.base_url()}/responses",
+                {"model": self.config.model_id,
+                 "input": self.combined_prompt(system_prompt, user_prompt),
+                 "max_output_tokens": max_tokens},
             )
-
-        upper = result_text.upper()
-        if "STATUS: FAILED" in upper or "ERROR:" in upper:
-            raise ProviderError(f"AgentRouter route failed: {result_text[:300]}")
-        match = _RESULT.search(result_text)
-        text = match.group(1).strip() if match else result_text.strip()
+            text = _openai_text(payload)
+            usage = payload.get("usage", {})
+            finish_reason = payload.get("status")
+            prompt_transport = "combined_single_text"
+        elif style == "anthropic":
+            payload, _ = self.post_json(
+                f"{self.base_url()}/v1/messages",
+                {"model": self.config.model_id, "system": system_prompt,
+                 "messages": [{"role": "user", "content": user_prompt}],
+                 "max_tokens": max_tokens, "temperature": 0},
+            )
+            text = _anthropic_text(payload)
+            usage = payload.get("usage", {})
+            finish_reason = payload.get("stop_reason")
+            prompt_transport = "system_and_user"
+        else:
+            raise ProviderError(f"Unsupported AgentRouter API style: {style}")
         return ProviderResponse(
-            model=self.config.name,
-            provider="agentrouter",
-            task_id=task_id,
-            run_id=run_id,
-            text=text,
+            model=self.config.name, provider="agentrouter", task_id=task_id,
+            run_id=run_id, text=text,
             latency_seconds=time.perf_counter() - started,
-            finish_reason="completed",
-            api_metadata={
-                "model_id": self.config.model_id,
-                "identity_status": self.config.identity_status,
-                "route_tool": self.config.route_tool,
-                "prompt_transport": "combined_single_text",
-                "max_tokens_supported": False,
-            },
+            input_tokens=_integer_or_none(usage.get("input_tokens", usage.get("prompt_tokens"))),
+            output_tokens=_integer_or_none(usage.get("output_tokens", usage.get("completion_tokens"))),
+            finish_reason=finish_reason,
+            api_metadata={"model_id": self.config.model_id,
+                          "identity_status": self.config.identity_status,
+                          "api_style": style, "base_url": self.base_url(),
+                          "prompt_transport": prompt_transport,
+                          "max_tokens_supported": True},
         )
 
-    def _call_tool(self, name: str, arguments: dict[str, Any]) -> str:
-        base_url = os.environ.get(
-            "AGENTROUTER_BASE_URL", "https://www.agent-router.org/mcp"
-        ).rstrip("/")
-        payload, _ = self.post_json(
-            base_url,
-            {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "tools/call",
-                "params": {"name": name, "arguments": arguments},
-            },
-            accept="application/json, text/event-stream",
-        )
-        if "error" in payload:
-            raise ProviderError(f"AgentRouter MCP error: {payload['error']}")
-        result = payload.get("result", {})
-        structured = result.get("structuredContent", {}).get("result")
-        if isinstance(structured, str):
-            return structured
-        content = result.get("content", [])
-        if content and isinstance(content[0].get("text"), str):
-            return content[0]["text"]
-        raise ProviderError("AgentRouter returned no text result")
+    def base_url(self) -> str:
+        style = self.config.api_style or "openai"
+        env_name = self.config.base_url_env or "AGENTROUTER_BASE_URL"
+        default = "https://agentrouter.org/v1" if style == "openai" else "https://agentrouter.org"
+        return os.environ.get(env_name, default).rstrip("/")
 
+
+def _openai_text(payload: dict) -> str:
+    if isinstance(payload.get("output_text"), str) and payload["output_text"].strip():
+        return payload["output_text"].strip()
+    for item in payload.get("output", []):
+        for content in item.get("content", []):
+            if isinstance(content, dict) and isinstance(content.get("text"), str):
+                return content["text"]
+    raise ProviderError("AgentRouter OpenAI response contained no text")
+
+
+def _anthropic_text(payload: dict) -> str:
+    text = "".join(item.get("text", "") for item in payload.get("content", [])
+                    if item.get("type") == "text" and isinstance(item.get("text"), str)).strip()
+    if not text:
+        raise ProviderError("AgentRouter Anthropic response contained no text")
+    return text
+
+
+def _integer_or_none(value: object) -> int | None:
+    return int(value) if isinstance(value, (int, float)) else None
