@@ -60,7 +60,10 @@ def run_experiment(
         "w", encoding="utf-8"
     ) as score_file:
         for model in models:
-            client = create_provider(model, config.timeout_seconds)
+            client = create_provider(
+                model,
+                config.smoke_timeout_seconds if smoke else config.timeout_seconds,
+            )
             for task in tasks:
                 for repetition in range(repetitions):
                     run_id = uuid.uuid4().hex
@@ -73,7 +76,7 @@ def run_experiment(
                         run_id=run_id,
                         experiment_id=experiment_id,
                         repetition=repetition,
-                        retry_attempts=config.retry_attempts,
+                        retry_attempts=config.smoke_retry_attempts if smoke else config.retry_attempts,
                     )
                     response_file.write(json.dumps(response.to_dict(), sort_keys=True) + "\n")
                     if response.error:
