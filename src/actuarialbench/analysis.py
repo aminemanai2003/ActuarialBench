@@ -20,24 +20,27 @@ def analyze_experiment(experiment_dir: str | Path, bootstrap_samples: int = 2_00
     models = sorted({record["model"] for record in scores})
     for model in models:
         rows = [record for record in scores if record["model"] == model]
-        values = np.asarray([record["score"] for record in rows], dtype=float)
+        successful_rows = [record for record in rows if "API_ERROR" not in record.get("failure_tags", []) and "TIMEOUT" not in record.get("failure_tags", [])]
+        values = np.asarray([record["score"] for record in successful_rows], dtype=float)
         latencies = np.asarray([record["latency_seconds"] for record in rows if record.get("latency_seconds") is not None], dtype=float)
         costs = np.asarray([record["reported_cost_usd"] for record in rows if record.get("reported_cost_usd") is not None], dtype=float)
         confidence_rows = [row for row in rows if row.get("confidence") is not None]
         summary["models"][model] = {
-            "n": int(values.size),
-            "mean_score": float(values.mean()),
-            "median_score": float(np.median(values)),
+            "n": len(rows),
+            "n_capability_observations": int(values.size),
+            "mean_score": float(values.mean()) if values.size else None,
+            "median_score": float(np.median(values)) if values.size else None,
             "bootstrap_ci_95": list(_bootstrap_mean_ci(values, bootstrap_samples)),
-            "correct_rate": float(np.mean([record["correct"] for record in rows])),
-            "schema_failure_rate": float(np.mean([not record["schema_valid"] for record in rows])),
+            "correct_rate": float(np.mean([record["correct"] for record in successful_rows])) if successful_rows else None,
+            "schema_failure_rate": float(np.mean([not record["schema_valid"] for record in successful_rows])) if successful_rows else None,
+            "api_failure_rate": 1.0 - (len(successful_rows) / len(rows)),
             "failure_tags": _failure_counts(rows),
             "median_latency_seconds": float(np.median(latencies)) if latencies.size else None,
             "mean_cost_usd": float(costs.mean()) if costs.size else None,
             "cost_per_correct_task_usd": _cost_per_correct(rows),
             "consistency_score_std": float(values.std(ddof=1)) if values.size > 1 else 0.0,
             "brier_score": _brier_score(confidence_rows),
-            "domain_scores": _domain_scores(rows),
+            "domain_scores": _domain_scores(successful_rows),
         }
     for left, right in combinations(models, 2):
         paired = _paired_scores(scores, left, right)
@@ -60,6 +63,8 @@ def analyze_experiment(experiment_dir: str | Path, bootstrap_samples: int = 2_00
 def _paired_scores(scores: list[dict[str, Any]], left: str, right: str) -> np.ndarray:
     keyed: dict[tuple[str, int], dict[str, float]] = {}
     for row in scores:
+        if "API_ERROR" in row.get("failure_tags", []) or "TIMEOUT" in row.get("failure_tags", []):
+            continue
         keyed.setdefault((row["task_id"], int(row["repetition"])), {})[row["model"]] = float(row["score"])
     return np.asarray(
         [[values[left], values[right]] for values in keyed.values() if left in values and right in values],

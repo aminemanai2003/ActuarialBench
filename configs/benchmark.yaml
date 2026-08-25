@@ -6,6 +6,6 @@
   "timeout_seconds": 90,
   "retry_attempts": 1,
   "composite_weights": null,
-  "smoke_task_count": 8
-  ,"full_task_count": 48
+  "smoke_task_count": 8,
+  "full_task_count": 48
 }
