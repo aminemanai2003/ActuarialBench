@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import numpy as np
+
 from actuarialbench.schemas import Task
 
 
@@ -40,6 +42,11 @@ def generate_reserving_code_task(seed: int) -> Task:
         [110.0, 165.0, None],
         [140.0, None, None],
     ]
+    if seed != 20260827:
+        rng = np.random.default_rng(seed)
+        scale = float(rng.uniform(0.75, 1.35))
+        public_triangle = [[round(value * scale, 2) if value is not None else None for value in row] for row in public_triangle]
+        hidden_triangle = [[round(value * scale, 2) if value is not None else None for value in row] for row in hidden_triangle]
     prompt = f"""Implement this pure-Python function:
 
 def chain_ladder_ultimates(cumulative_triangle):

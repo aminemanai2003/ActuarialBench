@@ -32,13 +32,18 @@ def generate_survival_task(seed: int) -> Task:
     durations = [2, 3, 3, 5, 6, 6, 7, 8, 9, 10]
     events = [1, 0, 1, 1, 0, 1, 1, 0, 1, 1]
     evaluation_time = 7
+    if seed != 20260829:
+        rng = np.random.default_rng(seed)
+        durations = [int(value + rng.integers(0, 3)) for value in durations]
+        events = [int(value) for value in rng.permutation(events)]
+        evaluation_time = int(np.median(durations))
     survival, median = _kaplan_meier(durations, events, evaluation_time)
     prompt = f"""For ten policyholders, observed durations are {durations} and event
 indicators are {events}, where 1 is death and 0 is right-censoring. Using the
 Kaplan-Meier estimator, calculate survival at time {evaluation_time} and the median
 survival time (the first observed time at which estimated survival is <= 0.5).
 Events occur before censoring at the same time. Return:
-{{"answers": {{"survival_at_7": <number>, "median_survival": <number>}},
+{{"answers": {{"survival_at_time": <number>, "median_survival": <number>}},
 "confidence": <0-100>, "explanation": <string>}}
 """
     return Task(
@@ -47,11 +52,11 @@ Events occur before censoring at the same time. Return:
         kind="multi",
         seed=seed,
         prompt=prompt,
-        expected={"survival_at_7": survival, "median_survival": median},
+        expected={"survival_at_time": survival, "median_survival": median},
         tolerance={
-            "survival_at_7": {"rtol": 1e-8, "atol": 1e-8},
+            "survival_at_time": {"rtol": 1e-8, "atol": 1e-8},
             "median_survival": {"rtol": 0.0, "atol": 0.0},
         },
         required_concepts=("kaplan-meier", "at risk"),
-        metadata={"durations": durations, "events": events},
+        metadata={"durations": durations, "events": events, "evaluation_time": evaluation_time},
     )

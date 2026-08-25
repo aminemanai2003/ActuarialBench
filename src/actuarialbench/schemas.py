@@ -32,6 +32,7 @@ class BenchmarkConfig:
     timeout_seconds: float
     retry_attempts: int
     smoke_task_count: int
+    full_task_count: int = 48
     composite_weights: dict[str, float] | None = None
 
 
@@ -70,6 +71,12 @@ class ProviderResponse:
     finish_reason: str | None = None
     error: str | None = None
     api_metadata: dict[str, Any] = field(default_factory=dict)
+    experiment_id: str = ""
+    repetition: int = 0
+    task_seed: int | None = None
+    domain: str | None = None
+    kind: str | None = None
+    prompt_hash: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -90,7 +97,14 @@ class ScoreRecord:
     failure_tags: list[str]
     parsed_output: dict[str, Any] | None
     reasoning_checks: dict[str, bool] = field(default_factory=dict)
+    experiment_id: str = ""
+    provider: str = ""
+    domain: str = ""
+    kind: str = ""
+    task_seed: int | None = None
+    latency_seconds: float | None = None
+    reported_cost_usd: float | None = None
+    output_tokens: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
-

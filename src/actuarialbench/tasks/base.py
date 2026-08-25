@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from actuarialbench.schemas import Task
 from actuarialbench.tasks.life import generate_life_task
 from actuarialbench.tasks.pricing import generate_pricing_task
@@ -27,8 +29,8 @@ def common_system_prompt() -> str:
     )
 
 
-def build_tasks(base_seed: int) -> list[Task]:
-    """Build the frozen eight-task vertical slice in a stable order."""
+def build_tasks(base_seed: int, count: int = 8) -> list[Task]:
+    """Build a deterministic task bank; the first eight are the smoke slice."""
 
     generators = [
         generate_life_task,
@@ -40,8 +42,22 @@ def build_tasks(base_seed: int) -> list[Task]:
         generate_validation_task,
         generate_missing_information_task,
     ]
-    tasks = [generator(base_seed + index) for index, generator in enumerate(generators)]
+    if count < 1:
+        raise ValueError("Task count must be positive")
+    tasks: list[Task] = []
+    for variant in range((count + len(generators) - 1) // len(generators)):
+        for index, generator in enumerate(generators):
+            if len(tasks) >= count:
+                break
+            seed = base_seed + variant * 100 + index
+            task = generator(seed)
+            if variant:
+                task = replace(
+                    task,
+                    task_id=f"{task.task_id}_v{variant + 1}",
+                    metadata={**task.metadata, "variant": variant + 1},
+                )
+            tasks.append(task)
     if len({task.task_id for task in tasks}) != len(tasks):
         raise ValueError("Generated task IDs must be unique")
     return tasks
-

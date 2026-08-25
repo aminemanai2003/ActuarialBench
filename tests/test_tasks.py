@@ -31,3 +31,9 @@ def test_seed_changes_generated_numeric_instance() -> None:
     assert first.seed != second.seed
     assert first.metadata != second.metadata
 
+
+def test_full_bank_has_48_unique_deterministic_tasks() -> None:
+    tasks = build_tasks(20260825, count=48)
+    assert len(tasks) == 48
+    assert len({task.task_id for task in tasks}) == 48
+    assert [task.to_dict() for task in tasks] == [task.to_dict() for task in build_tasks(20260825, count=48)]
