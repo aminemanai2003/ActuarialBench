@@ -35,6 +35,8 @@ class BenchmarkConfig:
     full_task_count: int = 48
     smoke_timeout_seconds: float = 20.0
     smoke_retry_attempts: int = 0
+    retry_delay_seconds: float = 2.0
+    smoke_retry_delay_seconds: float = 3.0
     composite_weights: dict[str, float] | None = None
 
 

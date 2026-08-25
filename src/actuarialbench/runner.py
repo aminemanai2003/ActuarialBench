@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import subprocess
+import time
 import uuid
 from dataclasses import asdict
 from datetime import UTC, datetime
@@ -15,7 +16,7 @@ from typing import Iterable
 from actuarialbench.config import load_benchmark_config, load_model_configs
 from actuarialbench.graders import grade_task
 from actuarialbench.providers.factory import create_provider
-from actuarialbench.providers.base import ProviderError
+from actuarialbench.providers.base import ProviderError, ProviderHTTPError
 from actuarialbench.schemas import ProviderResponse, ScoreRecord, Task
 from actuarialbench.tasks import build_tasks, common_system_prompt
 
@@ -77,6 +78,7 @@ def run_experiment(
                         experiment_id=experiment_id,
                         repetition=repetition,
                         retry_attempts=config.smoke_retry_attempts if smoke else config.retry_attempts,
+                        retry_delay_seconds=config.smoke_retry_delay_seconds if smoke else config.retry_delay_seconds,
                     )
                     if response.error:
                         failure_tag = "TIMEOUT" if response.api_metadata.get("failure_class") == "timeout" else "API_ERROR"
@@ -143,6 +145,7 @@ def _generate_with_capture(
     experiment_id: str,
     repetition: int,
     retry_attempts: int,
+    retry_delay_seconds: float,
 ) -> ProviderResponse:
     provider = getattr(client, "config", None).provider if getattr(client, "config", None) else "unknown"
     last_error: Exception | None = None
@@ -165,6 +168,11 @@ def _generate_with_capture(
             return response
         except (ProviderError, OSError, TimeoutError) as exc:
             last_error = exc
+            retryable = isinstance(exc, ProviderHTTPError) and exc.retryable
+            retryable = retryable or isinstance(exc, TimeoutError) or "timed out" in str(exc).lower()
+            if attempt < retry_attempts and retryable:
+                delay = exc.retry_after if isinstance(exc, ProviderHTTPError) and exc.retry_after is not None else retry_delay_seconds * (2**attempt)
+                time.sleep(min(delay, 30.0))
     return ProviderResponse(
         model=model,
         provider=provider,
@@ -176,6 +184,7 @@ def _generate_with_capture(
         api_metadata={
             "failure_class": "timeout" if isinstance(last_error, TimeoutError) or "timed out" in str(last_error).lower() else "provider",
             "attempts": retry_attempts + 1,
+            "status_code": last_error.status_code if isinstance(last_error, ProviderHTTPError) else None,
         },
         experiment_id=experiment_id,
         repetition=repetition,

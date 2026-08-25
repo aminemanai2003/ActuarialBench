@@ -30,7 +30,7 @@ pytest
 
 Copy `.env.example` to `.env` and export the corresponding variables in the shell. Never copy keys from `Desktop\apis.txt` into source or commit history.
 
-Run the bounded smoke benchmark (one repetition, eight tasks, four configured routes; 20-second timeout and no retries):
+Run the bounded smoke benchmark (one repetition, eight tasks, four configured routes; 60-second timeout and one bounded retry):
 
 ```powershell
 python run_benchmark.py --smoke

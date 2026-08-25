@@ -15,6 +15,18 @@ from actuarialbench.schemas import ModelConfig, ProviderResponse
 class ProviderError(RuntimeError):
     """Raised when a provider request cannot produce a model response."""
 
+    retryable = False
+
+
+class ProviderHTTPError(ProviderError):
+    """HTTP failure with status and retry metadata preserved."""
+
+    def __init__(self, status_code: int, detail: str, retry_after: float | None = None) -> None:
+        super().__init__(f"HTTP {status_code} from provider: {detail}")
+        self.status_code = status_code
+        self.retry_after = retry_after
+        self.retryable = status_code == 429 or status_code >= 500
+
 
 class ProviderClient(ABC):
     """Lowest-common-denominator text generation interface."""
@@ -77,7 +89,8 @@ class ProviderClient(ABC):
                 headers = {key.lower(): value for key, value in response.headers.items()}
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:500]
-            raise ProviderError(f"HTTP {exc.code} from provider: {detail}") from exc
+            retry_after = _parse_retry_after(exc.headers.get("Retry-After"))
+            raise ProviderHTTPError(exc.code, detail, retry_after) from exc
         except (urllib.error.URLError, TimeoutError) as exc:
             raise ProviderError(f"Provider request failed: {exc}") from exc
 
@@ -85,3 +98,12 @@ class ProviderClient(ABC):
             return json.loads(raw), headers
         except json.JSONDecodeError as exc:
             raise ProviderError("Provider returned non-JSON content") from exc
+
+
+def _parse_retry_after(value: str | None) -> float | None:
+    if value is None:
+        return None
+    try:
+        return max(0.0, float(value))
+    except ValueError:
+        return None
