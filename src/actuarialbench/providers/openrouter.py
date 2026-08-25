@@ -44,9 +44,7 @@ class OpenRouterClient(ProviderClient):
             raise ProviderError(f"OpenRouter returned no choices: {payload.get('error', payload)}")
         choice = choices[0]
         usage = payload.get("usage", {})
-        text = choice.get("message", {}).get("content", "")
-        if not isinstance(text, str):
-            raise ProviderError("OpenRouter returned non-text message content")
+        text = _content_to_text(choice.get("message", {}).get("content", ""))
         return ProviderResponse(
             model=self.config.name,
             provider="openrouter",
@@ -75,3 +73,19 @@ def _integer_or_none(value: object) -> int | None:
 def _float_or_none(value: object) -> float | None:
     return float(value) if isinstance(value, (int, float)) else None
 
+
+def _content_to_text(content: object) -> str:
+    """Normalize OpenAI-compatible string or content-block message payloads."""
+
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = [
+            item.get("text", "")
+            for item in content
+            if isinstance(item, dict) and isinstance(item.get("text", ""), str)
+        ]
+        text = "".join(parts)
+        if text:
+            return text
+    raise ProviderError("OpenRouter returned non-text message content")

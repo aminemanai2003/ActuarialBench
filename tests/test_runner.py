@@ -40,6 +40,8 @@ def test_runner_persists_provenance_and_domain_filter(tmp_path, monkeypatch) -> 
         assert response["experiment_id"] == experiment.name
         assert response["domain"] == "life"
         assert response["prompt_hash"]
+        assert "parsed_output" in response
+        assert "score" in response
+        assert "failure_tags" in response
         assert score["experiment_id"] == experiment.name
         assert score["task_seed"] == response["task_seed"]
-

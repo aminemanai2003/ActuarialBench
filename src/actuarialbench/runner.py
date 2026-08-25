@@ -78,8 +78,8 @@ def run_experiment(
                         repetition=repetition,
                         retry_attempts=config.smoke_retry_attempts if smoke else config.retry_attempts,
                     )
-                    response_file.write(json.dumps(response.to_dict(), sort_keys=True) + "\n")
                     if response.error:
+                        failure_tag = "TIMEOUT" if response.api_metadata.get("failure_class") == "timeout" else "API_ERROR"
                         score = ScoreRecord(
                             task_id=task.task_id,
                             model=model.name,
@@ -89,7 +89,7 @@ def run_experiment(
                             component_scores={},
                             schema_valid=False,
                             confidence=None,
-                            failure_tags=["API_ERROR"],
+                            failure_tags=[failure_tag],
                             parsed_output=None,
                             experiment_id=experiment_id,
                             provider=response.provider,
@@ -115,6 +115,17 @@ def run_experiment(
                         score.latency_seconds = response.latency_seconds
                         score.reported_cost_usd = response.reported_cost_usd
                         score.output_tokens = response.output_tokens
+                    response_record = response.to_dict()
+                    response_record.update(
+                        {
+                            "parsed_output": score.parsed_output,
+                            "score": score.score,
+                            "component_scores": score.component_scores,
+                            "failure_tags": score.failure_tags,
+                            "schema_valid": score.schema_valid,
+                        }
+                    )
+                    response_file.write(json.dumps(response_record, sort_keys=True) + "\n")
                     score_file.write(json.dumps(score.to_dict(), sort_keys=True) + "\n")
                     response_file.flush()
                     score_file.flush()
@@ -162,7 +173,10 @@ def _generate_with_capture(
         text="",
         latency_seconds=0.0,
         error=str(last_error),
-        api_metadata={"failure_class": "provider", "attempts": retry_attempts + 1},
+        api_metadata={
+            "failure_class": "timeout" if isinstance(last_error, TimeoutError) or "timed out" in str(last_error).lower() else "provider",
+            "attempts": retry_attempts + 1,
+        },
         experiment_id=experiment_id,
         repetition=repetition,
         task_seed=task.seed,
