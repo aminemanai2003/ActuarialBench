@@ -41,6 +41,17 @@ class ProviderClient(ABC):
             raise ProviderError(f"Missing required environment variable: {self.config.api_key_env}")
         return key
 
+    @staticmethod
+    def combined_prompt(system_prompt: str, user_prompt: str) -> str:
+        """Use one text transport because AgentRouter has no equivalent system role."""
+
+        return (
+            "SYSTEM INSTRUCTIONS\n"
+            f"{system_prompt.strip()}\n\n"
+            "USER TASK\n"
+            f"{user_prompt.strip()}"
+        )
+
     def post_json(
         self,
         url: str,
@@ -74,4 +85,3 @@ class ProviderClient(ABC):
             return json.loads(raw), headers
         except json.JSONDecodeError as exc:
             raise ProviderError("Provider returned non-JSON content") from exc
-
