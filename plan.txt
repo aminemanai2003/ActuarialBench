@@ -1,0 +1,1170 @@
+You are senior ML evaluation engineer, actuarial data scientist, statistician, and Python software engineer.
+
+Build production-quality portfolio project named:
+
+# ActuarialBench
+
+**Subtitle:** Reproducible Benchmark of Frontier LLM Reliability in Actuarial Science
+
+Goal: benchmark 4 LLMs on actuarial-science tasks with maximum objectivity, reproducibility, statistical rigor, minimal evaluator bias, and strong ground truth.
+
+Models already verified working:
+
+* `gpt-5.6-sol` via AgentRouter
+* `deepseek-v4-flash` via AgentRouter
+* `claude-opus-5` via AgentRouter
+* `x0alpha` via OpenRouter
+
+Do NOT test API keys beyond requests explicitly needed by benchmark. Do NOT hardcode secrets. Use environment variables.
+
+Project must be intentionally minimal technically:
+
+* Python scripts
+* pytest
+* NumPy / SciPy / pandas / statsmodels / scikit-learn / lifelines only where useful
+* Matplotlib for figures
+* JSONL or Parquet for raw results
+* LaTeX for ONE final research-style report
+* Git-friendly
+* no frontend
+* no Next.js
+* no DB
+* no notebook unless absolutely unavoidable
+* no unnecessary framework
+
+Main objective is scientific quality, not UI.
+
+---
+
+# 1. CENTRAL RESEARCH QUESTION
+
+Answer:
+
+> How reliably do frontier LLMs solve and validate actuarial tasks under a controlled, reproducible benchmark, and where do their failure modes differ?
+
+Secondary questions:
+
+1. Which model has highest actuarial numerical accuracy?
+2. Which model produces most correct executable actuarial code?
+3. Which model best detects invalid assumptions and deliberately planted actuarial errors?
+4. Which model hallucinates least when information is insufficient?
+5. Which model is most consistent across repeated runs?
+6. Which model gives best accuracy/cost tradeoff?
+7. Which model gives best accuracy/latency tradeoff?
+8. Are observed differences statistically meaningful or likely noise?
+9. Which actuarial domains favor different models?
+10. Does model confidence correspond to actual correctness?
+
+Never conclude simply:
+
+> Model A is better than Model B.
+
+Use:
+
+> Model A significantly outperformed Model B on metric X under this benchmark and protocol.
+
+If evidence insufficient, declare tie / inconclusive.
+
+---
+
+# 2. FAIRNESS PRINCIPLES
+
+Benchmark fairness is core feature.
+
+Use same:
+
+* task text
+* system prompt
+* task order policy
+* available information
+* tools
+* context
+* output schema
+* timeout policy
+* retry policy
+* token/output limit where providers permit
+* fresh context for each task
+* grading rules
+* ground truth
+* repetitions
+
+Use lowest common denominator of API capabilities.
+
+Do NOT give one model special tools or prompts.
+
+If API/provider does not support same parameter, record difference explicitly in metadata.
+
+Do not secretly optimize prompts per model.
+
+Do not modify benchmark tasks after seeing which model performs poorly.
+
+Freeze benchmark definition before full run.
+
+Create benchmark manifest containing:
+
+* benchmark version
+* Git commit if available
+* task hashes
+* prompt hash
+* random seeds
+* model names
+* provider names
+* model IDs
+* parameter configuration
+* timestamp
+
+---
+
+# 3. MODEL CONFIGURATION
+
+Create clean provider abstraction.
+
+Suggested structure:
+
+```text
+src/
+  providers/
+    base.py
+    agentrouter.py
+    openrouter.py
+```
+
+Expose common interface similar to:
+
+```python
+response = client.generate(
+    model=model_id,
+    system_prompt=system_prompt,
+    user_prompt=user_prompt,
+    max_tokens=max_tokens,
+)
+```
+
+Normalize response into:
+
+```python
+{
+    "model": ...,
+    "provider": ...,
+    "task_id": ...,
+    "run_id": ...,
+    "text": ...,
+    "latency_seconds": ...,
+    "input_tokens": ...,
+    "output_tokens": ...,
+    "reported_cost_usd": ...,
+    "finish_reason": ...,
+    "error": ...
+}
+```
+
+Use environment variables only.
+
+Example names:
+
+```text
+AGENTROUTER_API_KEY
+AGENTROUTER_BASE_URL
+OPENROUTER_API_KEY
+```
+
+Do not expose key values in logs.
+
+---
+
+# 4. BENCHMARK DESIGN
+
+Prefer tasks with objectively computable ground truth.
+
+Avoid benchmark dominated by subjective essay grading.
+
+Use approximately 40–60 high-quality actuarial tasks initially.
+
+Make count configurable.
+
+Suggested domains:
+
+### A. Life contingencies
+
+Examples:
+
+* survival probabilities
+* mortality probabilities
+* expected present values
+* life annuities
+* life insurance benefits
+* prospective reserves
+* multi-state probabilities
+
+### B. Non-life pricing
+
+Examples:
+
+* claim frequency
+* severity
+* compound loss
+* Poisson
+* Negative Binomial
+* Gamma
+* lognormal
+* GLM interpretation
+* exposure offsets
+* pure premium
+
+### C. Reserving
+
+Examples:
+
+* Chain Ladder
+* development factors
+* ultimate claims
+* IBNR
+* Bornhuetter-Ferguson
+* Mack concepts
+* reserve diagnostics
+
+### D. Risk
+
+Examples:
+
+* VaR
+* TVaR / Expected Shortfall
+* aggregate losses
+* Monte Carlo
+* loss distributions
+* ruin/risk measures
+
+### E. Survival / stochastic models
+
+Examples:
+
+* Kaplan-Meier
+* hazard/survival relationships
+* Cox interpretation
+* Markov chains
+* transition matrices
+* multi-state insurance models
+
+### F. Statistical actuarial modelling
+
+Examples:
+
+* MLE
+* GLMs
+* calibration
+* overdispersion
+* frequency-severity modelling
+* model selection
+* leakage detection
+
+### G. Actuarial validation / error detection
+
+Give model intentionally flawed work.
+
+Plant known errors such as:
+
+* wrong exposure treatment
+* impossible probability
+* negative exposure
+* inconsistent cumulative triangle
+* incorrect discounting
+* inappropriate Poisson under severe overdispersion
+* future-data leakage
+* incorrect reserve formula
+* wrong interpretation of hazard
+* invalid VaR/TVaR relationship
+
+Ground truth is exact injected defect list.
+
+### H. Missing-information / hallucination tests
+
+Ask questions where valid answer requires saying information is insufficient.
+
+Examples:
+
+* reserve requested without mortality basis
+* premium requested without exposure
+* discounted value requested without interest assumption
+* model comparison requested without validation metric
+
+Correct behavior:
+
+* explicitly identify missing information
+* do NOT invent values
+
+This category must have machine-verifiable expected requirements.
+
+---
+
+# 5. GENERATED TASKS TO REDUCE TRAINING CONTAMINATION
+
+Do not primarily copy textbook/web benchmark questions.
+
+Implement deterministic task generators using fixed random seeds.
+
+Example:
+
+```python
+rng = np.random.default_rng(seed)
+lambda_ = rng.uniform(...)
+shape = rng.uniform(...)
+scale = rng.uniform(...)
+```
+
+Generator produces:
+
+1. task prompt
+2. exact parameters
+3. exact reference answer
+4. tolerance
+5. metadata
+6. scoring function
+
+Reference solutions must be produced independently from LLM outputs.
+
+For analytic tasks, compute using trusted formulas / deterministic Python.
+
+For simulation tasks, ground truth should preferably use analytic quantity when available.
+
+If simulation itself is target, use large reference simulation with fixed seed and justified statistical tolerance.
+
+---
+
+# 6. TASK TYPES
+
+Implement at least 4 objectively gradable task families.
+
+## Type 1 — Numerical
+
+Model returns structured final numerical answer.
+
+Compare with ground truth using absolute/relative tolerance.
+
+Example:
+
+```python
+np.isclose(
+    model_value,
+    expected_value,
+    rtol=...,
+    atol=...
+)
+```
+
+Do not use arbitrary tolerance. Define mathematically justified tolerance per task.
+
+## Type 2 — Multiple component calculation
+
+Task may require several values.
+
+Score each component independently.
+
+Example:
+
+```text
+expected frequency
+expected severity
+pure premium
+variance
+```
+
+This prevents one partially correct answer receiving full credit.
+
+## Type 3 — Coding
+
+Model must output Python function/code.
+
+Execute in isolated test process.
+
+Use:
+
+* pytest
+* hidden unit tests
+* edge cases
+* numerical tolerance
+* optional property-based tests if dependency justified
+* timeout
+* no network
+* controlled imports
+
+Separate:
+
+```text
+code executes
+tests passed
+actuarial result correct
+```
+
+## Type 4 — Validation / diagnosis
+
+Plant explicit defects in synthetic actuarial analysis.
+
+Ground truth = defect IDs.
+
+Measure:
+
+* true positives
+* false positives
+* false negatives
+* precision
+* recall
+* F1
+* critical-defect recall
+
+Avoid subjective free-form scoring as much as possible.
+
+---
+
+# 7. STRUCTURED MODEL OUTPUT
+
+Use common output contract when feasible.
+
+For numerical tasks:
+
+```json
+{
+  "final_answer": 123.45,
+  "confidence": 82,
+  "explanation": "..."
+}
+```
+
+For multi-answer tasks:
+
+```json
+{
+  "answers": {
+    "expected_loss": 123.45,
+    "variance": 456.78
+  },
+  "confidence": 82,
+  "explanation": "..."
+}
+```
+
+For diagnosis:
+
+```json
+{
+  "issues": [
+    {
+      "code": "OVERDISPERSION",
+      "severity": "high",
+      "explanation": "..."
+    }
+  ],
+  "confidence": 90
+}
+```
+
+Parser must tolerate minor formatting errors but record schema violations separately.
+
+Do not let parser silently reinterpret obviously wrong answers.
+
+---
+
+# 8. EXPLANATION QUALITY
+
+Primary score must NOT depend heavily on subjective prose judgment.
+
+Explanation should be analyzed using objective signals where possible:
+
+* required formula present
+* required assumptions mentioned
+* correct method named
+* contradiction between explanation and final answer
+* unsupported invented assumptions
+
+Create `reasoning_checks` from task-specific expected concepts.
+
+Example:
+
+```python
+required_concepts = [
+    "overdispersion",
+    "negative binomial"
+]
+```
+
+Do not use another competing benchmark model as sole judge.
+
+LLM-as-judge may be optional exploratory analysis only, clearly separated from primary benchmark.
+
+---
+
+# 9. REPETITIONS
+
+One run is insufficient for stochastic LLMs.
+
+Support configurable repetitions.
+
+Default full benchmark:
+
+```text
+3 runs per model per task
+```
+
+Allow:
+
+```bash
+python run_benchmark.py --repetitions 3
+```
+
+Use each repetition as separate observation.
+
+Do not average raw text.
+
+Measure consistency:
+
+* score variance
+* answer variance
+* failure variance
+
+If cost becomes excessive, benchmark architecture must allow subset runs.
+
+Do NOT automatically launch expensive full benchmark during implementation.
+
+Only build it and run tiny smoke tests unless explicitly instructed otherwise.
+
+---
+
+# 10. CORE METRICS
+
+Report per model:
+
+### Accuracy
+
+* overall score
+* numerical accuracy
+* coding pass rate
+* diagnosis F1
+* hallucination/unsupported-assumption rate
+
+### Reliability
+
+* critical-error rate
+* consistency across repetitions
+* schema failure rate
+* timeout/API failure rate
+
+### Efficiency
+
+* median latency
+* input tokens
+* output tokens
+* cost/task when available
+* cost per correct task
+
+### Calibration
+
+Each model outputs confidence 0–100.
+
+Measure:
+
+* Brier score where applicable
+* calibration bins
+* accuracy vs confidence
+
+Do not reward confidence directly.
+
+---
+
+# 11. FAILURE TAXONOMY
+
+Create objective failure categories such as:
+
+```text
+NUMERICAL_ERROR
+FORMULA_ERROR
+ACTUARIAL_ASSUMPTION_ERROR
+HALLUCINATED_PARAMETER
+MISSING_ASSUMPTION_NOT_DETECTED
+CODE_RUNTIME_ERROR
+CODE_LOGIC_ERROR
+SCHEMA_ERROR
+VALIDATION_FALSE_POSITIVE
+VALIDATION_FALSE_NEGATIVE
+TIMEOUT
+API_ERROR
+```
+
+Store failure categories per task.
+
+This is important for report explanations of WHY models differ.
+
+---
+
+# 12. STATISTICAL COMPARISON
+
+This section must be rigorous.
+
+Because all models answer same tasks, comparisons are paired.
+
+Compute:
+
+* bootstrap 95% confidence intervals
+* paired model differences
+* effect sizes
+* McNemar test for paired binary outcomes where appropriate
+* paired permutation/bootstrap tests for continuous scores where appropriate
+
+Multiple pairwise model comparisons create multiple-testing problem.
+
+Apply correction such as:
+
+```text
+Holm-Bonferroni
+```
+
+Do not declare winner from tiny score differences.
+
+Winner rule:
+
+Model A may be called better than B on metric X only if:
+
+1. point estimate favors A
+2. uncertainty interval supports meaningful difference
+3. paired statistical test supports difference after correction
+4. effect size is non-trivial
+
+Otherwise:
+
+```text
+No statistically supported difference / tie.
+```
+
+Overall ranking should distinguish:
+
+```text
+statistically supported ranking
+descriptive ranking
+```
+
+Never hide uncertainty.
+
+---
+
+# 13. DOMAIN ANALYSIS
+
+Produce model × domain matrix.
+
+Example:
+
+```text
+                Life   Pricing   Reserving   Risk   Validation
+GPT
+Claude
+DeepSeek
+x0alpha
+```
+
+Purpose:
+
+A model may win overall but lose reserving.
+
+Report:
+
+* strongest model/domain combinations
+* weakest combinations
+* failure modes by domain
+
+Do not collapse everything into single leaderboard only.
+
+---
+
+# 14. COMPOSITE SCORE
+
+Primary report should show raw interpretable metrics.
+
+If creating composite score, define weights BEFORE seeing results.
+
+Example only:
+
+```text
+50% objective correctness
+20% critical-error avoidance
+15% consistency
+10% hallucination avoidance
+5% efficiency
+```
+
+But prefer separate dimensions.
+
+Never change weights to make preferred model win.
+
+Record weights in benchmark config.
+
+---
+
+# 15. COST FAIRNESS
+
+Provider pricing may differ or model may be temporarily free.
+
+Store cost separately from capability.
+
+Do not boost accuracy score because model is cheaper.
+
+Report two separate questions:
+
+1. Which model is most accurate?
+2. Which model provides best performance/cost tradeoff?
+
+Build Pareto analysis:
+
+```text
+accuracy vs cost
+accuracy vs latency
+```
+
+If exact cost unavailable, mark:
+
+```text
+unknown
+```
+
+Do not invent pricing.
+
+---
+
+# 16. PROMPT CONTAMINATION / LEAKAGE CONTROL
+
+Generated tasks should use novel parameter combinations.
+
+Save task generators publicly.
+
+Optionally keep exact full test instances generated only at benchmark runtime.
+
+Use deterministic seeds for reproducibility.
+
+Record hashes.
+
+Avoid famous benchmark datasets unless used only as secondary external validation.
+
+Document possibility that model training data may contain standard actuarial formulas.
+
+Distinguish:
+
+```text
+knowledge of formula
+```
+
+from:
+
+```text
+ability to correctly apply formula to novel instance
+```
+
+---
+
+# 17. PROJECT STRUCTURE
+
+Create approximately:
+
+```text
+actuarialbench/
+├── README.md
+├── pyproject.toml
+├── .env.example
+├── .gitignore
+├── configs/
+│   ├── benchmark.yaml
+│   └── models.yaml
+├── src/
+│   └── actuarialbench/
+│       ├── providers/
+│       │   ├── base.py
+│       │   ├── agentrouter.py
+│       │   └── openrouter.py
+│       ├── tasks/
+│       │   ├── base.py
+│       │   ├── life.py
+│       │   ├── pricing.py
+│       │   ├── reserving.py
+│       │   ├── risk.py
+│       │   ├── survival.py
+│       │   └── validation.py
+│       ├── graders/
+│       ├── metrics/
+│       ├── statistics/
+│       ├── runner.py
+│       └── schemas.py
+├── tests/
+├── results/
+│   ├── raw/
+│   └── processed/
+├── figures/
+├── report/
+│   ├── main.tex
+│   └── generated/
+├── run_benchmark.py
+├── analyze_results.py
+└── generate_report_assets.py
+```
+
+Keep architecture simpler if same robustness achievable.
+
+Avoid abstraction for abstraction's sake.
+
+---
+
+# 18. COMMAND-LINE EXPERIENCE
+
+Target:
+
+```bash
+python run_benchmark.py --smoke
+```
+
+Runs tiny cheap validation.
+
+Full run:
+
+```bash
+python run_benchmark.py --repetitions 3
+```
+
+Analysis:
+
+```bash
+python analyze_results.py
+```
+
+Tests:
+
+```bash
+pytest
+```
+
+Report assets:
+
+```bash
+python generate_report_assets.py
+```
+
+Then compile:
+
+```bash
+cd report
+pdflatex main.tex
+pdflatex main.tex
+```
+
+If LaTeX engine differs, document exact command.
+
+---
+
+# 19. RAW RESULTS
+
+Never overwrite previous experiments silently.
+
+Each run should create timestamped/UUID experiment directory:
+
+```text
+results/raw/2026-XX-XX_<experiment_id>/
+```
+
+Store:
+
+```text
+manifest.json
+responses.jsonl
+scores.jsonl
+```
+
+Every response should include:
+
+* experiment ID
+* task ID
+* task seed
+* model
+* provider
+* repetition
+* prompt hash
+* raw output
+* parsed output
+* score
+* failure tags
+* latency
+* token counts
+* cost if known
+* API/model metadata
+
+---
+
+# 20. REPORT
+
+Create ONE polished minimal LaTeX report.
+
+Target ~10–15 pages after real experiment, not artificially padded.
+
+Sections:
+
+```text
+Abstract
+1. Introduction
+2. Research Questions
+3. Benchmark Design
+4. Actuarial Task Construction
+5. Ground Truth and Grading
+6. Experimental Controls
+7. Statistical Methodology
+8. Results
+9. Failure Analysis
+10. Cost and Latency
+11. Limitations / Threats to Validity
+12. Conclusion
+```
+
+Report must be generated from result files where practical.
+
+Do not manually type benchmark scores into LaTeX.
+
+Generate `.tex` tables/figures from Python.
+
+---
+
+# 21. FIGURES
+
+Generate professional minimal figures:
+
+1. overall objective accuracy by model with 95% CI
+2. domain accuracy
+3. critical-error rate
+4. hallucination rate
+5. accuracy vs cost
+6. accuracy vs latency
+7. confidence calibration
+8. pairwise model difference with CI
+
+Do not create decorative graphs.
+
+Every graph must answer research question.
+
+---
+
+# 22. EXPLAINING WHY MODEL WON
+
+Do not merely write:
+
+> GPT scored 89%, Claude 85%.
+
+Generate evidence-based interpretation.
+
+Example:
+
+> GPT's advantage came primarily from reserving and numerical risk tasks, where it produced fewer formula-selection and arithmetic errors. Claude showed similar performance in life contingencies but higher recall on deliberately planted validation defects. Pairwise confidence intervals indicate GPT's aggregate advantage is statistically supported / not statistically supported.
+
+Every explanation must trace back to:
+
+* domain scores
+* task-level outcomes
+* failure categories
+* paired differences
+
+Never invent causal explanations like:
+
+> because GPT architecture is superior
+
+unless independently known and relevant.
+
+Use:
+
+> observed advantage was associated with fewer X errors
+
+not unsupported causal claims.
+
+---
+
+# 23. README
+
+README should sell project professionally but scientifically.
+
+Include:
+
+* project objective
+* models
+* benchmark domains
+* methodology
+* ground-truth strategy
+* fairness controls
+* commands
+* result summary after experiments
+* report link
+* limitations
+
+Position project around:
+
+```text
+actuarial science
+model validation
+LLM reliability
+model risk
+AI governance
+reproducibility
+statistical evaluation
+```
+
+Avoid hype.
+
+Do not write:
+
+```text
+GPT DESTROYS CLAUDE
+```
+
+Use professional actuarial/consulting language appropriate for firms like AXA, Generali, Allianz, SCOR, PwC, Deloitte, EY, KPMG.
+
+---
+
+# 24. QUALITY REQUIREMENTS
+
+Code must:
+
+* have type hints
+* have concise docstrings
+* avoid giant files
+* have deterministic seeds
+* have useful exceptions
+* never leak API keys
+* distinguish provider failure from model failure
+* preserve raw model output
+* be restartable
+* support subset selection
+* support model selection
+* support task/domain selection
+* support repetitions
+* have tests for graders and ground truth
+
+Test ground truth itself.
+
+For each generated task, verify invariants.
+
+Examples:
+
+```python
+assert 0 <= survival_probability <= 1
+assert reserve_is_finite
+assert var >= 0
+```
+
+Reference implementation bugs would invalidate benchmark, so ground-truth tests are critical.
+
+---
+
+# 25. IMPORTANT ANTI-BIAS RULES
+
+Never:
+
+* hand-pick tasks after seeing results
+* delete difficult tasks because preferred model failed
+* alter tolerance per model
+* give model-specific prompts
+* judge one model using another model's preferences
+* count API errors as mathematical errors without reporting separately
+* hide failed runs
+* cherry-pick best repetition
+* claim significance without statistical test
+* claim global superiority
+* infer model architecture/provider identity for x0alpha without verified evidence
+
+x0alpha should be treated purely as black-box endpoint.
+
+---
+
+# 26. IMPLEMENTATION PHASES
+
+Implement incrementally.
+
+### Phase 1
+
+Repository skeleton + configs + provider wrappers + schemas.
+
+### Phase 2
+
+Ground-truth task framework + ~8 representative tasks.
+
+One task from each major category.
+
+### Phase 3
+
+Graders + pytest suite.
+
+Verify ground truth independently.
+
+### Phase 4
+
+Smoke benchmark across all four models.
+
+Use minimum requests required.
+
+### Phase 5
+
+Expand to robust ~40–60 task benchmark.
+
+Do NOT run full benchmark automatically.
+
+### Phase 6
+
+Statistics + analysis.
+
+### Phase 7
+
+LaTeX report generator + figures.
+
+### Phase 8
+
+README + reproducibility checks.
+
+---
+
+# 27. FIRST IMPLEMENTATION TARGET
+
+Before expanding benchmark, prove entire system works with approximately 8 tasks.
+
+For each task:
+
+```text
+generator
+→ ground truth
+→ prompt
+→ 4 models
+→ parser
+→ grader
+→ raw result
+→ statistical analysis
+→ report table
+```
+
+Once vertical slice works, expand task bank.
+
+---
+
+# 28. FINAL STANDARD
+
+Project should look like small reproducible empirical research study, not AI demo.
+
+Ideal recruiter impression:
+
+> Candidate understands actuarial modelling, Python, statistical inference, GenAI evaluation, model risk, validation, reproducibility, and scientific limitations.
+
+Most important deliverable is not leaderboard.
+
+It is defensible answer to:
+
+> Under clearly defined actuarial tasks and controlled experimental conditions, which model performs better, by how much, with what uncertainty, at what cost, and because of which observable failure modes?
+
+Start by inspecting existing repository.
+
+Then:
+
+1. propose concise implementation plan
+2. show exact files to create/change
+3. implement Phase 1–4
+4. run unit tests
+5. run ONLY cheap smoke tests unless explicit permission given for larger API benchmark
+6. report what works, remaining work, and any methodological risks found
+
+Do not overengineer.
+Do not create frontend.
+Do not substitute subjective LLM judging for objective ground truth.
+Prioritize validity over feature count.
