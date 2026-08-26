@@ -16,6 +16,7 @@
       "api_key_env": "AGENTROUTER_DEEPSEEK_V4_FLASH_API_KEY",
       "api_style": "openai",
       "base_url_env": "AGENTROUTER_OPENAI_BASE_URL",
+      "reasoning_effort": "low",
       "identity_status": "externally_asserted"
     },
     {
@@ -28,11 +29,14 @@
       "identity_status": "externally_asserted"
     },
     {
-      "name": "x0alpha",
-      "provider": "openrouter",
-      "model_id": "stealth/ox-alpha",
-      "api_key_env": "OPENROUTER_API_KEY",
-      "identity_status": "provider_catalog"
+      "name": "glm-5.3",
+      "provider": "agentrouter",
+      "model_id": "glm-5.3",
+      "api_key_env": "AGENTROUTER_GLM_5_3_API_KEY",
+      "api_style": "openai_chat",
+      "base_url_env": "AGENTROUTER_OPENAI_BASE_URL",
+      "reasoning_effort": "low",
+      "identity_status": "externally_asserted"
     }
   ]
 }

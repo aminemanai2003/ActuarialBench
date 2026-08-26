@@ -2,7 +2,7 @@
   "benchmark_version": "0.1.0",
   "base_seed": 20260825,
   "default_repetitions": 3,
-  "max_tokens": 700,
+  "max_tokens": 2000,
   "timeout_seconds": 90,
   "retry_attempts": 2,
   "smoke_timeout_seconds": 60,

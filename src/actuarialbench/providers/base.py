@@ -70,18 +70,23 @@ class ProviderClient(ABC):
         payload: dict[str, Any],
         *,
         accept: str = "application/json",
+        user_agent: str = "ActuarialBench/0.1",
+        extra_headers: dict[str, str] | None = None,
     ) -> tuple[dict[str, Any], dict[str, str]]:
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        headers = {
+            "Authorization": f"Bearer {self.api_key()}",
+            "Accept": accept,
+            "Content-Type": "application/json",
+            "User-Agent": user_agent,
+        }
+        if extra_headers:
+            headers.update(extra_headers)
         request = urllib.request.Request(
             url,
             data=body,
             method="POST",
-            headers={
-                "Authorization": f"Bearer {self.api_key()}",
-                "Accept": accept,
-                "Content-Type": "application/json",
-                "User-Agent": "ActuarialBench/0.1",
-            },
+            headers=headers,
         )
         if self.config.provider == "agentrouter" and getattr(self.config, "api_style", None) == "anthropic":
             request.add_header("anthropic-version", "2023-06-01")

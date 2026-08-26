@@ -226,8 +226,9 @@ def _manifest(
             "same_task_text": True,
             "fresh_context_per_task": True,
             "temperature": 0,
+            "reasoning_control": "per-route effort is frozen in model configuration",
             "agentrouter_model_identity": "externally_asserted",
-            "agentrouter_transport": "documented OpenAI Responses or Anthropic Messages API selected per model",
+            "agentrouter_transport": "OpenAI Responses, OpenAI Chat Completions, or Anthropic Messages API selected per model",
             "lowest_common_denominator_note": "AgentRouter routes and model availability remain provider-controlled; unsupported labels are recorded as provider failures.",
         },
     }

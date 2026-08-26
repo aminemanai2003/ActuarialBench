@@ -19,6 +19,7 @@ class ModelConfig:
     identity_status: str
     api_style: str | None = None
     base_url_env: str | None = None
+    reasoning_effort: str | None = None
 
 
 @dataclass(frozen=True)

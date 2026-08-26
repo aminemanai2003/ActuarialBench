@@ -8,31 +8,78 @@ import time
 from actuarialbench.providers.base import ProviderClient, ProviderError
 from actuarialbench.schemas import ProviderResponse
 
+CODEX_COMPATIBLE_USER_AGENT = "codex_cli_rs/actuarialbench-0.1"
+CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.170 (external, cli)"
+
 
 class AgentRouterClient(ProviderClient):
     """Call the documented AgentRouter transport selected in model config."""
 
-    def generate(self, *, system_prompt: str, user_prompt: str, max_tokens: int,
-                 task_id: str, run_id: str) -> ProviderResponse:
+    def generate(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int,
+        task_id: str,
+        run_id: str,
+    ) -> ProviderResponse:
         style = self.config.api_style or "openai"
         started = time.perf_counter()
         if style == "openai":
+            request_payload = {
+                "model": self.config.model_id,
+                "input": self.combined_prompt(system_prompt, user_prompt),
+                "max_output_tokens": max_tokens,
+            }
+            if self.config.reasoning_effort:
+                request_payload["reasoning"] = {
+                    "effort": self.config.reasoning_effort
+                }
             payload, _ = self.post_json(
                 f"{self.base_url()}/responses",
-                {"model": self.config.model_id,
-                 "input": self.combined_prompt(system_prompt, user_prompt),
-                 "max_output_tokens": max_tokens},
+                request_payload,
+                user_agent=CODEX_COMPATIBLE_USER_AGENT,
             )
             text = _openai_text(payload)
             usage = payload.get("usage", {})
             finish_reason = payload.get("status")
             prompt_transport = "combined_single_text"
+        elif style == "openai_chat":
+            request_payload = {
+                "model": self.config.model_id,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": self.combined_prompt(system_prompt, user_prompt),
+                    }
+                ],
+                "max_tokens": max_tokens,
+                "temperature": 0,
+            }
+            if self.config.reasoning_effort:
+                request_payload["reasoning_effort"] = self.config.reasoning_effort
+            payload, _ = self.post_json(
+                f"{self.base_url()}/chat/completions",
+                request_payload,
+                user_agent=CODEX_COMPATIBLE_USER_AGENT,
+            )
+            text = _openai_chat_text(payload)
+            usage = payload.get("usage", {})
+            finish_reason = payload.get("choices", [{}])[0].get("finish_reason")
+            prompt_transport = "combined_single_text"
         elif style == "anthropic":
             payload, _ = self.post_json(
                 f"{self.base_url()}/v1/messages",
-                {"model": self.config.model_id, "system": system_prompt,
-                 "messages": [{"role": "user", "content": user_prompt}],
-                 "max_tokens": max_tokens, "temperature": 0},
+                {
+                    "model": self.config.model_id,
+                    "system": system_prompt,
+                    "messages": [{"role": "user", "content": user_prompt}],
+                    "max_tokens": max_tokens,
+                    "temperature": 0,
+                },
+                user_agent=CLAUDE_CODE_COMPATIBLE_USER_AGENT,
+                extra_headers={"x-app": "cli", "X-Claude-Code-Session-Id": run_id},
             )
             text = _anthropic_text(payload)
             usage = payload.get("usage", {})
@@ -41,23 +88,38 @@ class AgentRouterClient(ProviderClient):
         else:
             raise ProviderError(f"Unsupported AgentRouter API style: {style}")
         return ProviderResponse(
-            model=self.config.name, provider="agentrouter", task_id=task_id,
-            run_id=run_id, text=text,
+            model=self.config.name,
+            provider="agentrouter",
+            task_id=task_id,
+            run_id=run_id,
+            text=text,
             latency_seconds=time.perf_counter() - started,
-            input_tokens=_integer_or_none(usage.get("input_tokens", usage.get("prompt_tokens"))),
-            output_tokens=_integer_or_none(usage.get("output_tokens", usage.get("completion_tokens"))),
+            input_tokens=_integer_or_none(
+                usage.get("input_tokens", usage.get("prompt_tokens"))
+            ),
+            output_tokens=_integer_or_none(
+                usage.get("output_tokens", usage.get("completion_tokens"))
+            ),
             finish_reason=finish_reason,
-            api_metadata={"model_id": self.config.model_id,
-                          "identity_status": self.config.identity_status,
-                          "api_style": style, "base_url": self.base_url(),
-                          "prompt_transport": prompt_transport,
-                          "max_tokens_supported": True},
+            api_metadata={
+                "model_id": self.config.model_id,
+                "identity_status": self.config.identity_status,
+                "api_style": style,
+                "base_url": self.base_url(),
+                "prompt_transport": prompt_transport,
+                "reasoning_effort": self.config.reasoning_effort,
+                "max_tokens_supported": True,
+            },
         )
 
     def base_url(self) -> str:
         style = self.config.api_style or "openai"
         env_name = self.config.base_url_env or "AGENTROUTER_BASE_URL"
-        default = "https://agentrouter.org/v1" if style == "openai" else "https://agentrouter.org"
+        default = (
+            "https://agentrouter.org/v1"
+            if style in {"openai", "openai_chat"}
+            else "https://agentrouter.org"
+        )
         return os.environ.get(env_name, default).rstrip("/")
 
 
@@ -65,18 +127,44 @@ def _openai_text(payload: dict) -> str:
     if isinstance(payload.get("output_text"), str) and payload["output_text"].strip():
         return payload["output_text"].strip()
     for item in payload.get("output", []):
+        if item.get("type") != "message":
+            continue
         for content in item.get("content", []):
-            if isinstance(content, dict) and isinstance(content.get("text"), str):
-                return content["text"]
+            if (
+                content.get("type") == "output_text"
+                and isinstance(content.get("text"), str)
+                and content["text"].strip()
+            ):
+                return content["text"].strip()
+    for item in payload.get("output", []):
+        for content in item.get("content", []):
+            if (
+                isinstance(content, dict)
+                and isinstance(content.get("text"), str)
+                and content["text"].strip()
+            ):
+                return content["text"].strip()
     raise ProviderError("AgentRouter OpenAI response contained no text")
 
 
 def _anthropic_text(payload: dict) -> str:
-    text = "".join(item.get("text", "") for item in payload.get("content", [])
-                    if item.get("type") == "text" and isinstance(item.get("text"), str)).strip()
+    text = "".join(
+        item.get("text", "")
+        for item in payload.get("content", [])
+        if item.get("type") == "text" and isinstance(item.get("text"), str)
+    ).strip()
     if not text:
         raise ProviderError("AgentRouter Anthropic response contained no text")
     return text
+
+
+def _openai_chat_text(payload: dict) -> str:
+    choices = payload.get("choices", [])
+    if choices:
+        text = choices[0].get("message", {}).get("content")
+        if isinstance(text, str) and text.strip():
+            return text.strip()
+    raise ProviderError("AgentRouter OpenAI chat response contained no text")
 
 
 def _integer_or_none(value: object) -> int | None:
