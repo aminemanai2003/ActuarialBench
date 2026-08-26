@@ -6,8 +6,10 @@ import argparse
 import hashlib
 import json
 import subprocess
+import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -29,6 +31,7 @@ def run_experiment(
     task_ids: set[str] | None = None,
     domains: set[str] | None = None,
     output_root: str | Path = "results/raw",
+    parallel_models: bool = False,
 ) -> Path:
     """Run selected tasks/models and write immutable JSONL artifacts."""
 
@@ -51,7 +54,16 @@ def run_experiment(
     experiment_dir = Path(output_root) / experiment_id
     experiment_dir.mkdir(parents=True, exist_ok=False)
     system_prompt = common_system_prompt()
-    manifest = _manifest(config, models, tasks, system_prompt, repetitions, smoke, experiment_id)
+    manifest = _manifest(
+        config,
+        models,
+        tasks,
+        system_prompt,
+        repetitions,
+        smoke,
+        experiment_id,
+        parallel_models,
+    )
     (experiment_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
     )
@@ -60,7 +72,9 @@ def run_experiment(
     with responses_path.open("w", encoding="utf-8") as response_file, scores_path.open(
         "w", encoding="utf-8"
     ) as score_file:
-        for model in models:
+        write_lock = threading.Lock()
+
+        def run_model(model: object) -> None:
             client = create_provider(
                 model,
                 config.smoke_timeout_seconds if smoke else config.timeout_seconds,
@@ -127,10 +141,26 @@ def run_experiment(
                             "schema_valid": score.schema_valid,
                         }
                     )
-                    response_file.write(json.dumps(response_record, sort_keys=True) + "\n")
-                    score_file.write(json.dumps(score.to_dict(), sort_keys=True) + "\n")
-                    response_file.flush()
-                    score_file.flush()
+                    with write_lock:
+                        response_file.write(
+                            json.dumps(response_record, sort_keys=True) + "\n"
+                        )
+                        score_file.write(
+                            json.dumps(score.to_dict(), sort_keys=True) + "\n"
+                        )
+                        response_file.flush()
+                        score_file.flush()
+
+        if parallel_models and len(models) > 1:
+            with ThreadPoolExecutor(
+                max_workers=len(models), thread_name_prefix="benchmark-model"
+            ) as executor:
+                futures = [executor.submit(run_model, model) for model in models]
+                for future in futures:
+                    future.result()
+        else:
+            for model in models:
+                run_model(model)
     return experiment_dir
 
 
@@ -203,6 +233,7 @@ def _manifest(
     repetitions: int,
     smoke: bool,
     experiment_id: str,
+    parallel_models: bool,
 ) -> dict[str, object]:
     return {
         "experiment_id": experiment_id,
@@ -211,6 +242,11 @@ def _manifest(
         "git_commit": _git_commit(),
         "smoke": smoke,
         "repetitions": repetitions,
+        "execution": {
+            "parallel_models": parallel_models,
+            "model_workers": len(models) if parallel_models else 1,
+            "requests_per_model_sequential": True,
+        },
         "random_seed": config.base_seed,
         "parameter_configuration": asdict(config),
         "models": [asdict(model) for model in models],
@@ -262,6 +298,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--models", help="Comma-separated model labels")
     parser.add_argument("--tasks", help="Comma-separated task IDs")
     parser.add_argument("--domains", help="Comma-separated task domains")
+    parser.add_argument(
+        "--parallel-models",
+        action="store_true",
+        help="Run selected models concurrently with sequential requests per model",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
     if args.repetitions < 1:
         parser.error("--repetitions must be positive")
@@ -271,6 +312,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         model_names=_parse_csv(args.models),
         task_ids=_parse_csv(args.tasks),
         domains=_parse_csv(args.domains),
+        parallel_models=args.parallel_models,
     )
     print(path.as_posix())
     return 0

@@ -53,8 +53,10 @@ python analyze_results.py results/raw/<experiment-id>
 The full protocol is available but is not launched automatically:
 
 ```powershell
-python run_benchmark.py --repetitions 3
+python run_benchmark.py --repetitions 3 --parallel-models
 ```
+
+`--parallel-models` uses one worker per model route. Requests remain sequential within each route, so a model key is never used concurrently by the benchmark.
 
 ## Methodological controls
 

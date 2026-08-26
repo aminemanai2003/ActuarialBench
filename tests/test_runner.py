@@ -45,3 +45,39 @@ def test_runner_persists_provenance_and_domain_filter(tmp_path, monkeypatch) -> 
         assert "failure_tags" in response
         assert score["experiment_id"] == experiment.name
         assert score["task_seed"] == response["task_seed"]
+
+
+def test_runner_can_parallelize_models_with_sequential_per_model_calls(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setattr("actuarialbench.runner.create_provider", FakeProvider)
+    experiment = run_experiment(
+        repetitions=2,
+        smoke=False,
+        model_names={"gpt-5.6-sol", "deepseek-v4-flash"},
+        task_ids={"life_survival_5y"},
+        output_root=tmp_path,
+        parallel_models=True,
+    )
+    responses = [
+        json.loads(line)
+        for line in (experiment / "responses.jsonl").read_text().splitlines()
+    ]
+    scores = [
+        json.loads(line)
+        for line in (experiment / "scores.jsonl").read_text().splitlines()
+    ]
+    manifest = json.loads((experiment / "manifest.json").read_text())
+
+    assert len(responses) == len(scores) == 4
+    assert {(item["model"], item["repetition"]) for item in responses} == {
+        ("gpt-5.6-sol", 0),
+        ("gpt-5.6-sol", 1),
+        ("deepseek-v4-flash", 0),
+        ("deepseek-v4-flash", 1),
+    }
+    assert manifest["execution"] == {
+        "parallel_models": True,
+        "model_workers": 2,
+        "requests_per_model_sequential": True,
+    }
