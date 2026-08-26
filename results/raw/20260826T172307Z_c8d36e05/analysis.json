@@ -1,0 +1,206 @@
+{
+  "experiment_id": "20260826T172307Z_c8d36e05",
+  "models": {
+    "claude-opus-5": {
+      "api_failure_rate": 0.02083333333333337,
+      "bootstrap_ci_95": [
+        0.8262411347517731,
+        0.9219858156028369
+      ],
+      "brier_score": 0.10325954198473283,
+      "consistency_score_std": 0.2875762530479918,
+      "correct_rate": 0.8226950354609929,
+      "cost_per_correct_task_usd": null,
+      "domain_scores": {
+        "life": 1.0,
+        "pricing": 0.6666666666666666,
+        "reserving": 1.0,
+        "risk": 0.5333333333333333,
+        "statistics": 0.9166666666666666,
+        "survival": 0.8333333333333334,
+        "validation": 1.0
+      },
+      "failure_tags": {
+        "API_ERROR": 3,
+        "NUMERICAL_ERROR": 15,
+        "SCHEMA_ERROR": 10
+      },
+      "mean_cost_usd": null,
+      "mean_score": 0.875886524822695,
+      "median_latency_seconds": 17.440615500032436,
+      "median_score": 1.0,
+      "n": 144,
+      "n_capability_observations": 141,
+      "schema_failure_rate": 0.07092198581560284
+    },
+    "deepseek-v4-flash": {
+      "api_failure_rate": 0.0,
+      "bootstrap_ci_95": [
+        0.5538194444444444,
+        0.708376736111111
+      ],
+      "brier_score": 0.03339891304347826,
+      "consistency_score_std": 0.4794452924594614,
+      "correct_rate": 0.6180555555555556,
+      "cost_per_correct_task_usd": null,
+      "domain_scores": {
+        "life": 0.9444444444444444,
+        "pricing": 0.20833333333333334,
+        "reserving": 0.3888888888888889,
+        "risk": 0.0,
+        "statistics": 0.6111111111111112,
+        "survival": 0.8888888888888888,
+        "validation": 1.0
+      },
+      "failure_tags": {
+        "NUMERICAL_ERROR": 3,
+        "SCHEMA_ERROR": 52
+      },
+      "mean_cost_usd": null,
+      "mean_score": 0.6302083333333334,
+      "median_latency_seconds": 13.039530999958515,
+      "median_score": 1.0,
+      "n": 144,
+      "n_capability_observations": 144,
+      "schema_failure_rate": 0.3611111111111111
+    },
+    "glm-5.3": {
+      "api_failure_rate": 0.09722222222222221,
+      "bootstrap_ci_95": [
+        0.48841346153846155,
+        0.65
+      ],
+      "brier_score": 0.4894713178294574,
+      "consistency_score_std": 0.4491967587659862,
+      "correct_rate": 0.46153846153846156,
+      "cost_per_correct_task_usd": null,
+      "domain_scores": {
+        "life": 0.5555555555555556,
+        "pricing": 0.7916666666666666,
+        "reserving": 1.0,
+        "risk": 0.16666666666666666,
+        "statistics": 0.0,
+        "survival": 0.4444444444444444,
+        "validation": 0.9722222222222222
+      },
+      "failure_tags": {
+        "API_ERROR": 14,
+        "NUMERICAL_ERROR": 69,
+        "SCHEMA_ERROR": 1
+      },
+      "mean_cost_usd": null,
+      "mean_score": 0.5711538461538461,
+      "median_latency_seconds": 6.5504210999934,
+      "median_score": 0.75,
+      "n": 144,
+      "n_capability_observations": 130,
+      "schema_failure_rate": 0.007692307692307693
+    },
+    "gpt-5.6-sol": {
+      "api_failure_rate": 0.0,
+      "bootstrap_ci_95": [
+        0.7864149305555556,
+        0.8993055555555556
+      ],
+      "brier_score": 0.06240630708661417,
+      "consistency_score_std": 0.3510679607888807,
+      "correct_rate": 0.8263888888888888,
+      "cost_per_correct_task_usd": null,
+      "domain_scores": {
+        "life": 0.8333333333333334,
+        "pricing": 0.5972222222222222,
+        "reserving": 0.9444444444444444,
+        "risk": 0.5555555555555556,
+        "statistics": 0.8888888888888888,
+        "survival": 0.9444444444444444,
+        "validation": 1.0
+      },
+      "failure_tags": {
+        "CODE_RUNTIME_ERROR": 1,
+        "NUMERICAL_ERROR": 7,
+        "SCHEMA_ERROR": 17
+      },
+      "mean_cost_usd": null,
+      "mean_score": 0.8454861111111112,
+      "median_latency_seconds": 16.50678859994514,
+      "median_score": 1.0,
+      "n": 144,
+      "n_capability_observations": 144,
+      "schema_failure_rate": 0.11805555555555555
+    }
+  },
+  "pairwise": {
+    "claude-opus-5__vs__deepseek-v4-flash": {
+      "bootstrap_ci_95": [
+        0.15780141843971632,
+        0.3120567375886525
+      ],
+      "holm_adjusted_p_value": 0.0029985007496251873,
+      "mcnemar_p_value": 6.57466324582856e-05,
+      "mean_difference": 0.2322695035460993,
+      "n_pairs": 141,
+      "paired_cohens_d": 0.49596027695574524,
+      "permutation_p_value": 0.0004997501249375312
+    },
+    "claude-opus-5__vs__glm-5.3": {
+      "bootstrap_ci_95": [
+        0.1889763779527559,
+        0.36220472440944884
+      ],
+      "holm_adjusted_p_value": 0.0029985007496251873,
+      "mcnemar_p_value": 1.724922288337538e-14,
+      "mean_difference": 0.27755905511811024,
+      "n_pairs": 127,
+      "paired_cohens_d": 0.5650391927108619,
+      "permutation_p_value": 0.0004997501249375312
+    },
+    "claude-opus-5__vs__gpt-5.6-sol": {
+      "bootstrap_ci_95": [
+        -0.03368794326241135,
+        0.10460992907801418
+      ],
+      "holm_adjusted_p_value": 0.3633183408295852,
+      "mcnemar_p_value": 0.7358788008568808,
+      "mean_difference": 0.03368794326241135,
+      "n_pairs": 141,
+      "paired_cohens_d": 0.08028015221290898,
+      "permutation_p_value": 0.3633183408295852
+    },
+    "deepseek-v4-flash__vs__glm-5.3": {
+      "bootstrap_ci_95": [
+        -0.0019230769230769232,
+        0.18461538461538463
+      ],
+      "holm_adjusted_p_value": 0.11894052973513243,
+      "mcnemar_p_value": 1.5374090196473844e-05,
+      "mean_difference": 0.08846153846153847,
+      "n_pairs": 130,
+      "paired_cohens_d": 0.1646596252012471,
+      "permutation_p_value": 0.059470264867566215
+    },
+    "deepseek-v4-flash__vs__gpt-5.6-sol": {
+      "bootstrap_ci_95": [
+        -0.2916666666666667,
+        -0.13710937500000026
+      ],
+      "holm_adjusted_p_value": 0.0029985007496251873,
+      "mcnemar_p_value": 9.24769992138863e-06,
+      "mean_difference": -0.2152777777777778,
+      "n_pairs": 144,
+      "paired_cohens_d": -0.42639311170497035,
+      "permutation_p_value": 0.0004997501249375312
+    },
+    "glm-5.3__vs__gpt-5.6-sol": {
+      "bootstrap_ci_95": [
+        -0.3576923076923077,
+        -0.175
+      ],
+      "holm_adjusted_p_value": 0.0029985007496251873,
+      "mcnemar_p_value": 4.119230997967627e-14,
+      "mean_difference": -0.2653846153846154,
+      "n_pairs": 130,
+      "paired_cohens_d": -0.5070039359619981,
+      "permutation_p_value": 0.0004997501249375312
+    }
+  }
+}
