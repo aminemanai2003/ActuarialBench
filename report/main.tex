@@ -1,38 +1,346 @@
 \documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
+
+\usepackage[margin=0.85in]{geometry}
 \usepackage{booktabs}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{float}
 \usepackage{graphicx}
-\usepackage{hyperref}
-\title{ActuarialBench: Reproducible Benchmark of Frontier LLM Reliability in Actuarial Science}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{placeins}
+\usepackage[table]{xcolor}
+
+\definecolor{navy}{HTML}{173F5F}
+\definecolor{teal}{HTML}{2A9D8F}
+\definecolor{lightgray}{HTML}{F3F5F7}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navy,
+    urlcolor=teal,
+    pdftitle={ActuarialBench: Reproducible Benchmark of Frontier LLM Reliability in Actuarial Science},
+    pdfauthor={Amine Manai},
+    pdfsubject={Controlled empirical evaluation of language-model reliability on actuarial tasks}
+}
+\captionsetup{font=small, labelfont=bf}
+\setlist{nosep,leftmargin=1.5em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlength{\headheight}{14pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{ActuarialBench}
+\rhead{Empirical Benchmark Report}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\textbf{ActuarialBench}\\[0.35em]
+\large Reproducible Benchmark of Frontier LLM Reliability in Actuarial Science}
 \author{Amine Manai}
-\date{\today}
+\date{Experiment 20260826T172307Z\_c8d36e05}
+
 \begin{document}
+
 \maketitle
+
 \begin{abstract}
-ActuarialBench is a reproducible protocol for evaluating black-box language-model endpoints on objectively gradable actuarial tasks. The benchmark separates mathematical correctness, executable code correctness, validation-defect detection, schema reliability, latency, and cost. Results are paired by task and repetition and reported with uncertainty; no global superiority claim is made without statistical support.
+\input{generated/abstract_results.tex}
 \end{abstract}
+
+\tableofcontents
+
 \section{Introduction}
-Actuarial model risk depends on whether a system applies assumptions, formulas, and validation controls correctly under incomplete information. This study evaluates those observable behaviors rather than subjective fluency.
+
+An actuarial answer can be fluent and still fail at the point where the work matters: an assumption may be invented, a reserve formula may be misapplied, a probability may be impossible, or generated code may not reproduce the stated calculation. ActuarialBench measures these observable failures under a controlled protocol. It is a compact empirical study, not a conversational demonstration or a subjective writing contest.
+
+The benchmark's primary contribution is an auditable path from deterministic task generation to preserved model output, objective grading, paired statistical analysis, and a report generated from machine-readable artifacts. The study asks how reliably four black-box language-model routes solve and validate actuarial tasks, where their failure patterns differ, and whether measured differences are large enough to survive uncertainty and multiple-comparison controls.
+
+The analysis deliberately keeps capability, route availability, calibration, latency, and cost separate. A route can score well when it returns a usable answer yet fail more often at the API or schema boundary. Combining those dimensions into one post-hoc score would conceal the operational trade-off and introduce discretionary weights after observing the results.
+
 \section{Research Questions}
-The protocol asks which routes are accurate, reliable, calibrated, and efficient across actuarial domains, and which failure categories explain observed differences.
+
+The experiment addresses the following questions under the frozen task bank and provider configuration:
+
+\begin{enumerate}
+    \item Which route achieves the highest objective actuarial score and exact-correct rate?
+    \item Which route produces the most reliable executable actuarial code?
+    \item Which route detects planted validation defects and missing assumptions most accurately?
+    \item Do any routes introduce unsupported issue codes on missing-information tasks?
+    \item How stable are scores across three repeated calls to the same generated task?
+    \item How often do schema, timeout, or provider failures prevent capability assessment?
+    \item Does reported confidence correspond to exact correctness?
+    \item How do results vary across actuarial domains and task formats?
+    \item Are pairwise differences statistically supported after multiplicity correction?
+    \item What accuracy-latency and accuracy-cost trade-offs are observable from provider-reported metadata?
+\end{enumerate}
+
+No question asks which model is universally best. Every conclusion remains conditional on this task portfolio, prompt contract, route configuration, output budget, and experiment date.
+
 \section{Benchmark Design}
-The initial vertical slice contains eight deterministic tasks generated from fixed seeds. Each task stores a prompt, independently computed reference answer, tolerance, domain, and grading policy.
+
+\subsection{Experimental unit and task portfolio}
+
+The full bank contains 48 deterministic tasks. Six generated instances cover each of life contingencies, non-life pricing, reserving, risk, statistical modelling, and survival analysis. Validation contributes 12 tasks: six contain planted pricing defects and six withhold assumptions required for a life-insurance calculation. Four routes answered every task three times, creating 576 planned route-task-repetition cells.
+
+\begin{table}[H]
+\centering
+\caption{Recorded experiment provenance. Values are read from the frozen manifest.}
+\small
+\input{generated/experiment_table.tex}
+\end{table}
+
+The task portfolio is intentionally balanced by generated family, not calibrated to the workload of any particular insurer, qualification syllabus, or national market. Domain means therefore describe performance within this portfolio; they are not prevalence-weighted estimates of production actuarial work.
+
+\subsection{Route configuration}
+
+The configured labels were \texttt{gpt-5.6-sol}, \texttt{deepseek-v4-flash}, \texttt{claude-opus-5}, and \texttt{glm-5.3}. All were accessed through AgentRouter. Route identities are provider assertions and were not independently verified. The OpenAI Responses transport was used for GPT and DeepSeek, the Anthropic Messages transport for Claude, and OpenAI Chat Completions for GLM. Claude preserved separate system and user messages; compatible routes received the same content through their supported prompt transport.
+
+Each request used a fresh context and a 2,000-token output budget. DeepSeek and GLM used the configured low reasoning effort. Requests ran concurrently across routes but sequentially within each route, so no route key had more than one call in flight. The manifest records route metadata, prompt and task hashes, random seeds, retry policy, timestamps, and the Git commit used for execution.
+
+\section{Actuarial Task Construction}
+
+\subsection{Generated numerical and component tasks}
+
+Fixed-seed generators produced novel parameter combinations while retaining analytic ground truth. Life tasks multiply age-specific annual survival factors. Pricing tasks compute frequency, severity, pure premium, and aggregate variance under a compound model. Risk tasks evaluate lognormal value-at-risk and tail value-at-risk components. Statistical tasks recover exponential maximum-likelihood quantities, while survival tasks reconstruct Kaplan-Meier components.
+
+Multi-component scoring gives credit only for the components that meet their predefined tolerances. This avoids treating an answer with one correct intermediate value as either wholly correct or wholly wrong. Exact correctness still requires full credit on every required component.
+
+\subsection{Coding tasks}
+
+Reserving tasks require a Python function for Chain Ladder calculations. Generated code is parsed with an abstract-syntax-tree allowlist, limited to one required function, and executed in an isolated Python subprocess with restricted built-ins and a short timeout. Hidden cases check both execution and actuarial output. This mechanism reduces accidental host access but is not a hardened security sandbox.
+
+\subsection{Validation and missing-information tasks}
+
+The planted-defect tasks encode exact issue identifiers for negative exposure, overdispersion, future-data leakage, and impossible probabilities. Missing-information tasks require the route to identify absent mortality and interest assumptions without adding unsupported issue codes. Precision, recall, F1, and critical-defect recall follow directly from the expected and reported issue-code sets.
+
+This design makes validation grading reproducible, but it also narrows what can be claimed. The benchmark measures recognition of the injected defect taxonomy. It does not grade the full quality of an actuarial model-validation memorandum or prove that a route would detect novel defects outside the frozen set.
+
 \section{Ground Truth and Grading}
-Numerical components use analytic formulas and justified tolerances. Validation tasks use exact planted defect codes. Coding tasks use hidden cases and restricted subprocess execution. Explanations are secondary checks and do not replace primary correctness.
+
+Reference answers are computed independently of model output using deterministic Python and actuarial formulas. Each task stores its seed, expected values, component tolerances, metadata, required concepts, and grading policy. Unit tests exercise generator invariants such as bounded probabilities, finite reserves, non-negative risk measures, and reproducible task hashes.
+
+Numerical values use task-specific absolute and relative tolerances through \texttt{numpy.isclose}. Coding answers receive separate execution and hidden-case component scores. Diagnosis answers use exact set comparisons. The parser accepts a JSON object and tolerates surrounding code fences or recoverable surrounding text, but it records schema violations rather than silently inventing missing fields.
+
+The primary score is the arithmetic mean of objective component scores. \emph{Exact correct} means a score of one. Explanation checks are recorded as secondary evidence and do not replace mathematical or code correctness. Provider and timeout failures remain tagged separately from model-content errors.
+
 \section{Experimental Controls}
-The manifest records task hashes, prompt hashes, seeds, routes, configuration, and Git commit. Fresh context and the same task text are used for every route. Provider failures remain separate from model failures.
+
+Every route received the same task text, system instructions, task order, maximum output budget, grading rules, and reference answers. Each task began with a fresh context. Repetition identifiers were preserved rather than averaging or selecting the best response. Raw text, parsed output, component scores, latency, token counts, finish reason, route metadata, and error state were written for every call.
+
+The lowest-common-denominator policy cannot make heterogeneous APIs identical. Prompt transport differs for Claude, and provider-side routing or hidden model updates may differ across labels. Those deviations are recorded instead of being treated as controlled model properties. Provider-reported cost was accepted only when supplied; no public price list was retrofitted to calls after execution.
+
+The experiment directory is append-only in normal operation. Its core artifacts are \path{manifest.json}, \path{responses.jsonl}, \path{scores.jsonl}, and \path{analysis.json}. The published run contains all 576 planned cells without duplicates or omissions.
+
 \section{Statistical Methodology}
-Model comparisons are paired by task and repetition. The analysis reports bootstrap intervals, paired sign-permutation tests, and Holm-adjusted p-values. Small or uncertain differences are reported as inconclusive.
+
+\subsection{Capability and operational views}
+
+Two views prevent route failures from being mistaken for mathematical errors. The all-call mean retains every planned call and assigns the recorded zero score to API or timeout failures. The capability mean excludes those failures and estimates performance conditional on receiving a gradeable route response. Both are reported with their denominators.
+
+Schema failures remain in the capability view because the route returned content but did not satisfy the common output contract. Schema-failure rates use capability observations as their denominator. Calibration metrics use capability rows with a reported confidence value, so they should not be read as unconditional calibration of unavailable or unparsable responses.
+
+\subsection{Uncertainty and paired comparisons}
+
+Bootstrap 95\% intervals use 2,000 fixed-seed resamples of observed scores. Pairwise comparisons align routes on task and repetition and exclude a cell when either route has an API or timeout failure. The paired sign-permutation test evaluates the mean score difference, while paired Cohen's $d_z$ describes standardized effect size. Exact McNemar tests compare discordant exact-correct outcomes on the same aligned cells.
+
+Six pairwise route comparisons create a multiple-testing problem. Holm adjustment is applied separately to permutation and McNemar $p$-values. A descriptive lead is called statistically supported only when the point estimate favors the route, the interval excludes zero, and the adjusted test supports a difference. This rule prevents small ranking changes from becoming unsupported winner claims.
+
+\subsection{Reliability and calibration}
+
+Repeat agreement is the share of tasks whose available repetition scores are identical. Mean within-task standard deviation measures the magnitude of repeat variation without confounding it with different task difficulty. The Brier score compares confidence, scaled to $[0,1]$, with exact correctness. Five equal-width confidence bins support the reliability plot; sparse bins are shown only when they contain observations.
+
 \section{Results}
-Generated results are included from the experiment artifacts rather than typed into the report. The overall table is generated by \texttt{generate\_report\_assets.py}.
-\IfFileExists{generated/overall_table.tex}{\input{generated/overall_table.tex}}{}
-\IfFileExists{../figures/overall_accuracy.png}{\begin{figure}[h]\centering\includegraphics[width=0.85\textwidth]{../figures/overall_accuracy.png}\caption{Overall objective score with bootstrap intervals.}\end{figure}}{}
-\section{Failure Analysis}
-Failure tags distinguish numerical, formula, assumption, hallucination, code, schema, validation, timeout, and provider errors.
+
+\subsection{Overall capability and exact correctness}
+
+\input{generated/key_findings.tex}
+
+\begin{table}[H]
+\centering
+\caption{Overall performance. Capability metrics exclude API and timeout failures; all-call metrics retain them.}
+\scriptsize
+\resizebox{\textwidth}{!}{\input{generated/overall_table.tex}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{../figures/overall_accuracy.png}
+\caption{Mean capability score with fixed-seed bootstrap intervals. Overlap between the leading intervals is resolved through the paired tests rather than visual ranking alone.}
+\end{figure}
+
+The leading routes differ depending on the outcome definition. Claude had the highest capability partial-credit mean, while GPT produced more exact-correct calls and had no API failures. GLM's all-call result fell below its capability mean because no-text route responses were retained as operational failures. This distinction is material: conditional mathematical performance and end-to-end route reliability answer different questions.
+
+\subsection{Domain and task-format results}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{../figures/domain_accuracy.png}
+\caption{Capability score by domain. Each domain contains six generated tasks except validation, which contains twelve.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Mean capability score by actuarial domain.}
+\scriptsize
+\resizebox{\textwidth}{!}{\input{generated/domain_table.tex}}
+\end{table}
+
+No route dominated every domain. Claude led life and statistics and shared the top reserving result with GLM. GPT led risk and survival, while GLM led pricing. GPT, Claude, and DeepSeek all reached the ceiling on validation; GLM was close to it. DeepSeek's aggregate result was constrained mainly by pricing, risk, and coding rather than validation or life tasks.
+
+\begin{table}[H]
+\centering
+\caption{Mean capability score by objective task format. Diagnosis is the average of precision, recall, F1, and critical recall.}
+\small
+\input{generated/kind_table.tex}
+\end{table}
+
+The format view explains part of the domain pattern. Claude completed every gradeable coding task correctly. GPT was close on coding and strong across multi-component tasks. DeepSeek remained competitive on single numerical answers but lost substantial credit on multi-component and coding tasks. GLM's gradeable coding responses were correct, yet route failures clustered on that family and are visible only in the all-call and API-failure measures.
+
+\subsection{Paired evidence}
+
+\begin{table}[H]
+\centering
+\caption{Complete paired comparisons. Differences are left minus right. Holm adjustments are applied separately to the permutation and McNemar test families.}
+\scriptsize
+\resizebox{\textwidth}{!}{\input{generated/pairwise_table.tex}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/pairwise_difference.png}
+\caption{Paired capability-score differences. Positive values favor the route named on the left.}
+\end{figure}
+
+Claude and GPT were not statistically separated on mean capability score. Both showed statistically supported advantages over DeepSeek and GLM in the paired continuous-score analysis. DeepSeek's descriptive lead over GLM was not supported after Holm correction, even though their exact-correct outcomes produced a significant McNemar result. That disagreement reflects different estimands: partial-credit magnitude versus discordant all-or-nothing correctness. Pair counts vary because a capability comparison requires a gradeable observation from both routes in the same task-repetition cell.
+
+\section{Failure Analysis and Reliability}
+
+\subsection{Failure taxonomy}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.86\textwidth]{../figures/failure_tags.png}
+\caption{Failure tags recorded across all calls. One call may carry more than one tag.}
+\end{figure}
+
+Numerical and schema errors accounted for nearly all content-related failure tags. API errors were limited to no-text responses from Claude and GLM, and one coding response produced a runtime error. Failure tags are diagnostic labels, not mutually exclusive outcome classes, so their counts should not be summed into an error rate.
+
+\begin{table}[H]
+\centering
+\caption{Observed failure-tag counts by route.}
+\small
+\resizebox{\textwidth}{!}{\input{generated/failure_table.tex}}
+\end{table}
+
+\subsection{Validation and missing-information behavior}
+
+\begin{table}[H]
+\centering
+\caption{Validation performance on gradeable diagnosis responses. The unsupported issue rate is one minus issue-code precision on missing-information tasks.}
+\small
+\resizebox{\textwidth}{!}{\input{generated/validation_table.tex}}
+\end{table}
+
+All four routes detected the expected validation issues without unsupported issue codes on their gradeable responses. The zero critical-miss and unsupported-issue rates are favorable observations, but they also reveal a ceiling effect. This validation subset did not discriminate among the routes and cannot establish comparative superiority. Harder mixtures of subtle defects, plausible distractors, and partially missing assumptions are needed before making stronger model-risk claims.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{../figures/critical_error_rate.png}
+\caption{Critical validation-defect miss rate on gradeable diagnosis responses. Every observed rate was zero.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{../figures/hallucination_rate.png}
+\caption{Unsupported issue-code rate on missing-information tasks. This is a conservative code-level proxy, not a semantic audit of every sentence.}
+\end{figure}
+
+\subsection{Repeatability, schema adherence, and confidence}
+
+\begin{table}[H]
+\centering
+\caption{Operational reliability and calibration. Brier scores are conditional on a reported confidence value; lower is better.}
+\scriptsize
+\resizebox{\textwidth}{!}{\input{generated/reliability_table.tex}}
+\end{table}
+
+DeepSeek had the highest repeat-agreement rate by a narrow margin, but its schema-failure rate was substantially higher. GPT varied more in score across repeated calls while producing no API failures. GLM returned schema-conforming content when text was present, yet its route-level no-text failures reduced usable coverage. These measures should be read together: consistency among returned answers does not compensate for unavailable answers, and schema adherence does not establish mathematical correctness.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{../figures/calibration.png}
+\caption{Confidence calibration for capability observations with reported confidence. Points aggregate observations into five equal-width bins.}
+\end{figure}
+
+The calibration curves show substantial route-specific differences, particularly in high-confidence bins. Because confidence may be absent when parsing fails, the Brier scores are conditional and can favor a route whose least usable responses are excluded. They are useful diagnostics under the recorded contract, not complete measures of epistemic calibration.
+
 \section{Cost and Latency}
-Provider-reported cost and latency are descriptive efficiency measures. Unknown pricing is retained as unknown.
+
+\input{generated/cost_status.tex}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{../figures/latency.png}
+\caption{Median end-to-end response latency across recorded calls. Concurrency across routes means these values reflect the observed provider conditions, not a controlled throughput benchmark.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{../figures/accuracy_vs_latency.png}
+\caption{Observed capability-latency trade-off. Lower latency and higher score are preferable, but four provider-routed points are insufficient for a general efficiency frontier.}
+\end{figure}
+
+GLM was the fastest observed route, while Claude and GPT occupied the higher-capability, higher-latency region. No architecture-level explanation follows from this pattern because network conditions, provider routing, output length, and hidden serving configuration were not independently controlled. Cost comparisons remain unavailable rather than being reconstructed from public list prices that may not match AgentRouter billing.
+
 \section{Limitations and Threats to Validity}
-AgentRouter route identity is externally asserted rather than independently verified. The initial task bank is deliberately small, and restricted subprocess execution is not a hardened sandbox. Standard actuarial formulas may also be present in model training data; generated parameter combinations test application rather than formula novelty.
+
+\textbf{Construct validity.} The bank measures objective numerical, component, coding, and issue-code outcomes. It does not cover regulatory writing, expert judgement under ambiguous policy wording, long-horizon workflow execution, or human review quality. The validation subset reached a ceiling and should be expanded before comparative claims are made in that domain.
+
+\textbf{External validity.} Forty-eight generated tasks form a useful portfolio study but not a representative sample of all actuarial work. Six tasks within most domains are parameter variants of one family, so domain breadth is narrower than the task count alone suggests. Results should not be generalized to a different jurisdiction, provider, prompt, tool environment, or model version.
+
+\textbf{Route identity and serving conditions.} AgentRouter controls routing and asserts the model labels. The study cannot verify underlying weights, quantization, system prompts, batching, or provider updates. Latency and no-text failures may reflect serving conditions rather than intrinsic model capability.
+
+\textbf{Protocol comparability.} The content contract was shared, but API transports differed. Claude received distinct system and user fields while compatible routes received the supported combined transport. DeepSeek and GLM used low reasoning effort. The common 2,000-token limit may disadvantage routes that spend more output budget before emitting the requested JSON.
+
+\textbf{Statistical precision.} Three repetitions expose stochastic variation but remain a small sample of future responses. Bootstrap and permutation results describe the observed task-repetition portfolio; they do not remove dependence among generated variants or guarantee stability after provider changes. Pairwise capability tests omit cells with route failures, while all-call metrics retain them.
+
+\textbf{Grading and execution.} Ground truth and graders are tested, but any reference implementation defect would propagate systematically. Restricted subprocess execution is not container isolation. Confidence calibration is conditional on reported confidence, and the unsupported-issue proxy checks issue codes rather than every unsupported statement in free-form explanations.
+
 \section{Conclusion}
-ActuarialBench is designed to support a defensible, uncertainty-aware comparison after the task bank and experiment manifest are frozen. It does not justify a universal model ranking from a single score.
+
+ActuarialBench answers its central question with a qualified result. Claude and GPT formed the leading group under this protocol: Claude achieved the highest capability partial-credit mean, while GPT produced the most exact-correct calls and no route failures. Their mean capability difference was not statistically supported after correction. Both showed clearer paired advantages over DeepSeek and GLM, although performance varied materially by domain, task format, and operational outcome.
+
+The experiment also identifies where the benchmark itself must improve. Validation tasks were too easy to distinguish the routes, provider cost was unavailable, and generated variants provide depth within families rather than broad coverage of actuarial practice. The defensible contribution is therefore not a universal leaderboard. It is a reproducible record of what each route solved, where it failed, how stable the result was, and which observed differences survived paired uncertainty analysis.
+
+\appendix
+\clearpage
+
+\section{Reproducibility Checklist}
+
+\begin{enumerate}
+    \item Create a Python 3.11 or later environment and install \texttt{pip install -e ".[dev]"}.
+    \item Run \texttt{pytest} to verify task generators, graders, provider transports, retries, analysis, and report assets.
+    \item Set route keys through the environment variables documented in \texttt{.env.example}; never place keys in source files.
+    \item Run \texttt{python run\_benchmark.py --smoke} for the bounded eight-task route check.
+    \item Run \texttt{python run\_benchmark.py --repetitions 3 --parallel-models} only when the full API cost and scope are authorized.
+    \item Analyze an immutable experiment with \texttt{python analyze\_results.py results/raw/EXPERIMENT}.
+    \item Generate report assets with \texttt{python generate\_report\_assets.py results/raw/EXPERIMENT}.
+    \item Compile this report twice with \texttt{pdflatex -interaction=nonstopmode -halt-on-error main.tex}.
+\end{enumerate}
+
+The raw experiment contains 576 response records and 576 score records. The manifest freezes 48 task hashes, the shared prompt hash, route configuration, seed, repetitions, and execution commit. Generated tables and figures read from \texttt{analysis.json}; benchmark scores are not typed manually into this document.
+
+\section{Artifact Map}
+
+\begin{description}[leftmargin=2.7cm,style=nextline]
+    \item[Manifest] Experiment configuration, model routes, task and prompt hashes, seeds, timestamp, and execution commit.
+    \item[Responses] Raw text, parsed output, provider metadata, latency, tokens, cost if reported, and error state for every call.
+    \item[Scores] Objective score, exact-correct flag, component scores, confidence, schema status, and failure tags.
+    \item[Analysis] Per-route capability, reliability, calibration, domain, task-format, and paired statistical results.
+    \item[Report assets] Deterministic LaTeX fragments and figures generated from the frozen analysis file.
+\end{description}
+
 \end{document}

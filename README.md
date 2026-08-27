@@ -21,6 +21,23 @@ The GPT and DeepSeek routes use AgentRouter's Codex-compatible `/v1/responses` t
 
 DeepSeek and GLM use low reasoning effort so their internal reasoning does not consume the full 2,000-token response budget before producing a gradeable answer.
 
+## Published experiment
+
+The frozen full run completed all **576 planned calls**: 48 tasks, four routes, and three repetitions. Capability metrics exclude API and timeout failures; all-call metrics retain those failures as recorded zero-score observations.
+
+| Route | All-call mean | Capability mean | Exact correct | API failures | Median latency |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `claude-opus-5` | 0.858 | 0.876 | 116/144 | 3/144 | 17.44 s |
+| `gpt-5.6-sol` | 0.845 | 0.845 | 119/144 | 0/144 | 16.51 s |
+| `deepseek-v4-flash` | 0.630 | 0.630 | 89/144 | 0/144 | 13.04 s |
+| `glm-5.3` | 0.516 | 0.571 | 60/144 | 14/144 | 6.55 s |
+
+Claude had the highest capability partial-credit mean, while GPT produced the most exact-correct calls. Their paired mean difference was not statistically supported after Holm correction (Claude minus GPT: 0.034; 95% bootstrap interval -0.034 to 0.105; adjusted permutation p=0.363). The result supports a leading group under this protocol, not a universal winner.
+
+- [Final research report](report/ActuarialBench_Report.pdf)
+- [Machine-readable analysis](results/raw/20260826T172307Z_c8d36e05/analysis.json)
+- [Concise experiment summary](results/20260826T172307Z_c8d36e05.md)
+
 ## Reproduce locally
 
 ```powershell
@@ -48,6 +65,12 @@ Analyze an experiment without overwriting it:
 
 ```powershell
 python analyze_results.py results/raw/<experiment-id>
+```
+
+Generate the tables, figures, and Markdown summary used by the report:
+
+```powershell
+python generate_report_assets.py results/raw/<experiment-id>
 ```
 
 The full protocol is available but is not launched automatically:
@@ -80,6 +103,16 @@ python run_benchmark.py --repetitions 3 --parallel-models
 
 ## Report
 
-`report/main.tex` is a single research-style report shell. Generated tables and figures are written under `report/generated/` and `figures/` after an experiment is analyzed. The report generator produces overall/domain accuracy, critical-error and hallucination proxies, calibration, paired differences, and accuracy-vs-cost/latency figures when those provider fields are available.
+`report/main.tex` is the reproducible LaTeX source for the final research report. Generated tables and figures are written under `report/generated/` and `figures/` from the frozen analysis file; benchmark scores are not manually typed into the paper. The committed PDF is `report/ActuarialBench_Report.pdf`.
+
+Rebuild it after generating the assets:
+
+```powershell
+Set-Location report
+pdflatex -interaction=nonstopmode -halt-on-error -jobname=ActuarialBench_Report main.tex
+pdflatex -interaction=nonstopmode -halt-on-error -jobname=ActuarialBench_Report main.tex
+```
+
+The report covers experiment provenance, task construction, ground truth, fairness controls, paired inference, domain results, failure analysis, calibration, latency, limitations, and reproducibility. Provider cost was unavailable in the published run and remains explicitly unknown; no public pricing estimate was substituted.
 
 For a deterministic local structural check without API calls, run `pytest`. For the full task bank without a live experiment, use `python run_benchmark.py --repetitions 3 --domains pricing,risk` only after exporting provider keys; no full benchmark is launched by the repository automatically.
