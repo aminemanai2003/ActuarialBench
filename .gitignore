@@ -13,11 +13,9 @@ results/raw/*
 !results/raw/.gitkeep
 results/processed/*
 !results/processed/.gitkeep
-figures/*.png
-report/generated/*.tex
-report/generated/*.json
 report/*.aux
 report/*.log
 report/*.out
+report/*.toc
 report/*.pdf
-
+!report/ActuarialBench_Report.pdf

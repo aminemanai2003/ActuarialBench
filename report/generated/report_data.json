@@ -1,0 +1,566 @@
+{
+  "analysis": {
+    "experiment_id": "20260826T172307Z_c8d36e05",
+    "models": {
+      "claude-opus-5": {
+        "all_call_correct_rate": 0.8055555555555556,
+        "all_call_mean_score": 0.8576388888888888,
+        "api_failure_count": 3,
+        "api_failure_rate": 0.02083333333333337,
+        "bootstrap_ci_95": [
+          0.8262411347517731,
+          0.9219858156028369
+        ],
+        "brier_score": 0.10325954198473283,
+        "calibration_bins": [
+          {
+            "accuracy": 0.8854961832061069,
+            "lower": 0.8,
+            "mean_confidence": 0.9317557251908397,
+            "n": 131,
+            "upper": 1.0
+          }
+        ],
+        "correct_count": 116,
+        "correct_rate": 0.8226950354609929,
+        "cost_per_correct_task_usd": null,
+        "diagnosis_metrics": {
+          "critical_recall": 1.0,
+          "f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "domain_scores": {
+          "life": 1.0,
+          "pricing": 0.6666666666666666,
+          "reserving": 1.0,
+          "risk": 0.5333333333333333,
+          "statistics": 0.9166666666666666,
+          "survival": 0.8333333333333334,
+          "validation": 1.0
+        },
+        "failure_tags": {
+          "API_ERROR": 3,
+          "NUMERICAL_ERROR": 15,
+          "SCHEMA_ERROR": 10
+        },
+        "kind_scores": {
+          "coding": 1.0,
+          "diagnosis": 1.0,
+          "multi": 0.7463768115942029,
+          "numerical": 1.0
+        },
+        "mean_cost_usd": null,
+        "mean_reported_confidence": 0.9317557251908397,
+        "mean_score": 0.875886524822695,
+        "mean_within_task_score_std": 0.08421446672342733,
+        "median_input_tokens": null,
+        "median_latency_seconds": 17.440615500032436,
+        "median_output_tokens": 910.0,
+        "median_score": 1.0,
+        "missing_information_unsupported_issue_rate": 0.0,
+        "n": 144,
+        "n_capability_observations": 141,
+        "repeat_agreement_rate": 0.7446808510638298,
+        "schema_failure_rate": 0.07092198581560284
+      },
+      "deepseek-v4-flash": {
+        "all_call_correct_rate": 0.6180555555555556,
+        "all_call_mean_score": 0.6302083333333334,
+        "api_failure_count": 0,
+        "api_failure_rate": 0.0,
+        "bootstrap_ci_95": [
+          0.5538194444444444,
+          0.708376736111111
+        ],
+        "brier_score": 0.03339891304347826,
+        "calibration_bins": [
+          {
+            "accuracy": 0.967391304347826,
+            "lower": 0.8,
+            "mean_confidence": 0.9833695652173915,
+            "n": 92,
+            "upper": 1.0
+          }
+        ],
+        "correct_count": 89,
+        "correct_rate": 0.6180555555555556,
+        "cost_per_correct_task_usd": null,
+        "diagnosis_metrics": {
+          "critical_recall": 1.0,
+          "f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "domain_scores": {
+          "life": 0.9444444444444444,
+          "pricing": 0.20833333333333334,
+          "reserving": 0.3888888888888889,
+          "risk": 0.0,
+          "statistics": 0.6111111111111112,
+          "survival": 0.8888888888888888,
+          "validation": 1.0
+        },
+        "failure_tags": {
+          "NUMERICAL_ERROR": 3,
+          "SCHEMA_ERROR": 52
+        },
+        "kind_scores": {
+          "coding": 0.3888888888888889,
+          "diagnosis": 1.0,
+          "multi": 0.4270833333333333,
+          "numerical": 0.9444444444444444
+        },
+        "mean_cost_usd": null,
+        "mean_reported_confidence": 0.9833695652173915,
+        "mean_score": 0.6302083333333334,
+        "mean_within_task_score_std": 0.1106564485578763,
+        "median_input_tokens": null,
+        "median_latency_seconds": 13.039530999958515,
+        "median_output_tokens": 1426.5,
+        "median_score": 1.0,
+        "missing_information_unsupported_issue_rate": 0.0,
+        "n": 144,
+        "n_capability_observations": 144,
+        "repeat_agreement_rate": 0.75,
+        "schema_failure_rate": 0.3611111111111111
+      },
+      "glm-5.3": {
+        "all_call_correct_rate": 0.4166666666666667,
+        "all_call_mean_score": 0.515625,
+        "api_failure_count": 14,
+        "api_failure_rate": 0.09722222222222221,
+        "bootstrap_ci_95": [
+          0.48841346153846155,
+          0.65
+        ],
+        "brier_score": 0.4894713178294574,
+        "calibration_bins": [
+          {
+            "accuracy": 0.46511627906976744,
+            "lower": 0.8,
+            "mean_confidence": 0.9612403100775194,
+            "n": 129,
+            "upper": 1.0
+          }
+        ],
+        "correct_count": 60,
+        "correct_rate": 0.46153846153846156,
+        "cost_per_correct_task_usd": null,
+        "diagnosis_metrics": {
+          "critical_recall": 1.0,
+          "f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "domain_scores": {
+          "life": 0.5555555555555556,
+          "pricing": 0.7916666666666666,
+          "reserving": 1.0,
+          "risk": 0.16666666666666666,
+          "statistics": 0.0,
+          "survival": 0.4444444444444444,
+          "validation": 0.9722222222222222
+        },
+        "failure_tags": {
+          "API_ERROR": 14,
+          "NUMERICAL_ERROR": 69,
+          "SCHEMA_ERROR": 1
+        },
+        "kind_scores": {
+          "coding": 1.0,
+          "diagnosis": 0.9722222222222222,
+          "multi": 0.3506944444444444,
+          "numerical": 0.5555555555555556
+        },
+        "mean_cost_usd": null,
+        "mean_reported_confidence": 0.9612403100775194,
+        "mean_score": 0.5711538461538461,
+        "mean_within_task_score_std": 0.11437603146842439,
+        "median_input_tokens": null,
+        "median_latency_seconds": 6.5504210999934,
+        "median_output_tokens": 396.0,
+        "median_score": 0.75,
+        "missing_information_unsupported_issue_rate": 0.0,
+        "n": 144,
+        "n_capability_observations": 130,
+        "repeat_agreement_rate": 0.627906976744186,
+        "schema_failure_rate": 0.007692307692307693
+      },
+      "gpt-5.6-sol": {
+        "all_call_correct_rate": 0.8263888888888888,
+        "all_call_mean_score": 0.8454861111111112,
+        "api_failure_count": 0,
+        "api_failure_rate": 0.0,
+        "bootstrap_ci_95": [
+          0.7864149305555556,
+          0.8993055555555556
+        ],
+        "brier_score": 0.06240630708661417,
+        "calibration_bins": [
+          {
+            "accuracy": 0.937007874015748,
+            "lower": 0.8,
+            "mean_confidence": 0.9960551181102362,
+            "n": 127,
+            "upper": 1.0
+          }
+        ],
+        "correct_count": 119,
+        "correct_rate": 0.8263888888888888,
+        "cost_per_correct_task_usd": null,
+        "diagnosis_metrics": {
+          "critical_recall": 1.0,
+          "f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "domain_scores": {
+          "life": 0.8333333333333334,
+          "pricing": 0.5972222222222222,
+          "reserving": 0.9444444444444444,
+          "risk": 0.5555555555555556,
+          "statistics": 0.8888888888888888,
+          "survival": 0.9444444444444444,
+          "validation": 1.0
+        },
+        "failure_tags": {
+          "CODE_RUNTIME_ERROR": 1,
+          "NUMERICAL_ERROR": 7,
+          "SCHEMA_ERROR": 17
+        },
+        "kind_scores": {
+          "coding": 0.9444444444444444,
+          "diagnosis": 1.0,
+          "multi": 0.7465277777777778,
+          "numerical": 0.8333333333333334
+        },
+        "mean_cost_usd": null,
+        "mean_reported_confidence": 0.9960551181102362,
+        "mean_score": 0.8454861111111112,
+        "mean_within_task_score_std": 0.14862440382531295,
+        "median_input_tokens": null,
+        "median_latency_seconds": 16.50678859994514,
+        "median_output_tokens": 479.5,
+        "median_score": 1.0,
+        "missing_information_unsupported_issue_rate": 0.0,
+        "n": 144,
+        "n_capability_observations": 144,
+        "repeat_agreement_rate": 0.6666666666666666,
+        "schema_failure_rate": 0.11805555555555555
+      }
+    },
+    "pairwise": {
+      "claude-opus-5__vs__deepseek-v4-flash": {
+        "bootstrap_ci_95": [
+          0.15780141843971632,
+          0.3120567375886525
+        ],
+        "holm_adjusted_mcnemar_p_value": 0.0001972398973748568,
+        "holm_adjusted_p_value": 0.0029985007496251873,
+        "mcnemar_p_value": 6.57466324582856e-05,
+        "mean_difference": 0.2322695035460993,
+        "n_pairs": 141,
+        "paired_cohens_d": 0.49596027695574524,
+        "permutation_p_value": 0.0004997501249375312
+      },
+      "claude-opus-5__vs__glm-5.3": {
+        "bootstrap_ci_95": [
+          0.1889763779527559,
+          0.36220472440944884
+        ],
+        "holm_adjusted_mcnemar_p_value": 7.021754844238615e-10,
+        "holm_adjusted_p_value": 0.0029985007496251873,
+        "mcnemar_p_value": 1.312585595769633e-10,
+        "mean_difference": 0.27755905511811024,
+        "n_pairs": 127,
+        "paired_cohens_d": 0.5650391927108619,
+        "permutation_p_value": 0.0004997501249375312
+      },
+      "claude-opus-5__vs__gpt-5.6-sol": {
+        "bootstrap_ci_95": [
+          -0.03368794326241135,
+          0.10460992907801418
+        ],
+        "holm_adjusted_mcnemar_p_value": 1.0,
+        "holm_adjusted_p_value": 0.3633183408295852,
+        "mcnemar_p_value": 1.0,
+        "mean_difference": 0.03368794326241135,
+        "n_pairs": 141,
+        "paired_cohens_d": 0.08028015221290898,
+        "permutation_p_value": 0.3633183408295852
+      },
+      "deepseek-v4-flash__vs__glm-5.3": {
+        "bootstrap_ci_95": [
+          -0.0019230769230769232,
+          0.18461538461538463
+        ],
+        "holm_adjusted_mcnemar_p_value": 0.000364331659511663,
+        "holm_adjusted_p_value": 0.11894052973513243,
+        "mcnemar_p_value": 0.0001821658297558315,
+        "mean_difference": 0.08846153846153847,
+        "n_pairs": 130,
+        "paired_cohens_d": 0.1646596252012471,
+        "permutation_p_value": 0.059470264867566215
+      },
+      "deepseek-v4-flash__vs__gpt-5.6-sol": {
+        "bootstrap_ci_95": [
+          -0.2916666666666667,
+          -0.13710937500000026
+        ],
+        "holm_adjusted_mcnemar_p_value": 3.699079968555452e-05,
+        "holm_adjusted_p_value": 0.0029985007496251873,
+        "mcnemar_p_value": 9.24769992138863e-06,
+        "mean_difference": -0.2152777777777778,
+        "n_pairs": 144,
+        "paired_cohens_d": -0.42639311170497035,
+        "permutation_p_value": 0.0004997501249375312
+      },
+      "glm-5.3__vs__gpt-5.6-sol": {
+        "bootstrap_ci_95": [
+          -0.3576923076923077,
+          -0.175
+        ],
+        "holm_adjusted_mcnemar_p_value": 7.021754844238615e-10,
+        "holm_adjusted_p_value": 0.0029985007496251873,
+        "mcnemar_p_value": 1.170292474039769e-10,
+        "mean_difference": -0.2653846153846154,
+        "n_pairs": 130,
+        "paired_cohens_d": -0.5070039359619981,
+        "permutation_p_value": 0.0004997501249375312
+      }
+    }
+  },
+  "manifest": {
+    "benchmark_version": "0.1.0",
+    "created_at_utc": "2026-08-26T17:23:07.573182+00:00",
+    "execution": {
+      "model_workers": 4,
+      "parallel_models": true,
+      "requests_per_model_sequential": true
+    },
+    "experiment_id": "20260826T172307Z_c8d36e05",
+    "fairness_controls": {
+      "agentrouter_model_identity": "externally_asserted",
+      "agentrouter_transport": "OpenAI Responses, OpenAI Chat Completions, or Anthropic Messages API selected per model",
+      "fresh_context_per_task": true,
+      "lowest_common_denominator_note": "AgentRouter routes and model availability remain provider-controlled; unsupported labels are recorded as provider failures.",
+      "reasoning_control": "per-route effort is frozen in model configuration",
+      "same_system_prompt": true,
+      "same_task_text": true,
+      "temperature": 0
+    },
+    "git_commit": "fcefdd33c30e1ed88c6ee4bc64921fee2b7e668b",
+    "models": [
+      {
+        "api_key_env": "AGENTROUTER_GPT_5_6_SOL_API_KEY",
+        "api_style": "openai",
+        "base_url_env": "AGENTROUTER_OPENAI_BASE_URL",
+        "identity_status": "externally_asserted",
+        "model_id": "gpt-5.6-sol",
+        "name": "gpt-5.6-sol",
+        "provider": "agentrouter",
+        "reasoning_effort": null
+      },
+      {
+        "api_key_env": "AGENTROUTER_DEEPSEEK_V4_FLASH_API_KEY",
+        "api_style": "openai",
+        "base_url_env": "AGENTROUTER_OPENAI_BASE_URL",
+        "identity_status": "externally_asserted",
+        "model_id": "deepseek-v4-flash",
+        "name": "deepseek-v4-flash",
+        "provider": "agentrouter",
+        "reasoning_effort": "low"
+      },
+      {
+        "api_key_env": "AGENTROUTER_CLAUDE_OPUS_5_API_KEY",
+        "api_style": "anthropic",
+        "base_url_env": "AGENTROUTER_ANTHROPIC_BASE_URL",
+        "identity_status": "externally_asserted",
+        "model_id": "claude-opus-5",
+        "name": "claude-opus-5",
+        "provider": "agentrouter",
+        "reasoning_effort": null
+      },
+      {
+        "api_key_env": "AGENTROUTER_GLM_5_3_API_KEY",
+        "api_style": "openai_chat",
+        "base_url_env": "AGENTROUTER_OPENAI_BASE_URL",
+        "identity_status": "externally_asserted",
+        "model_id": "glm-5.3",
+        "name": "glm-5.3",
+        "provider": "agentrouter",
+        "reasoning_effort": "low"
+      }
+    ],
+    "parameter_configuration": {
+      "base_seed": 20260825,
+      "benchmark_version": "0.1.0",
+      "composite_weights": null,
+      "default_repetitions": 3,
+      "full_task_count": 48,
+      "max_tokens": 2000,
+      "retry_attempts": 2,
+      "retry_delay_seconds": 2,
+      "smoke_retry_attempts": 1,
+      "smoke_retry_delay_seconds": 3,
+      "smoke_task_count": 8,
+      "smoke_timeout_seconds": 60,
+      "timeout_seconds": 90
+    },
+    "prompt_hash": "b174ecc036bb1060fa2bba3208cf05dd6f7ff0105466f89749ccd6088277de3b",
+    "random_seed": 20260825,
+    "repetitions": 3,
+    "smoke": false,
+    "task_hashes": {
+      "life_survival_5y": "403e0c41513efbf20410448566332543963cafb981b6636fd109aa919b003615",
+      "life_survival_5y_v2": "737572e1103cd163216b8b7b6fb67d75204cec9f9c65c166c68162335c35aa65",
+      "life_survival_5y_v3": "8ff35f47d0acae9301913671cdab631a41f3486a19b8cb601b7a0266a95192d4",
+      "life_survival_5y_v4": "8eb928f5a26ade20a3b4c8acc747a5c02d8c2bdf4307e9e2cd1697b1839d801a",
+      "life_survival_5y_v5": "7f7cd024538ffcefa537f8e7e140fe88e221b8126d75f8a4945e89f7623ed7bc",
+      "life_survival_5y_v6": "3f2d0efaf2960ce4d48c74faea624e97ae6152f98925e97e49eb40a71977a6e5",
+      "pricing_compound_poisson": "9c92b3722c0a1d5cbdaee2fedcbe6f23966636340525768144b9ebded87fc3af",
+      "pricing_compound_poisson_v2": "0fe08723b7bd93f4ccccdfb729eda9e166853c6c530295cf801015d1847add86",
+      "pricing_compound_poisson_v3": "049db36781b3d0c6015a412f0960023b4d0786d2cecfc818be7c9224469c4028",
+      "pricing_compound_poisson_v4": "8ed3006fa8ae810468de63a352b4b1193f8b89f0396abb4aed21883f74c70001",
+      "pricing_compound_poisson_v5": "b26263860a84ef460ca19276ae897d940b0c904a99f908e16bda670f06a2412d",
+      "pricing_compound_poisson_v6": "035dffdeaff2ec4221ac0a37039c4e45cefcc20ee9a04ff564ba3493727e2456",
+      "reserving_chain_ladder_code": "3798b38d5ed505c51fa78ca1e908e6f491712227ef52037b008da65c6e322ee0",
+      "reserving_chain_ladder_code_v2": "e1f6348029ca7dce1be1e6d3a6f681a9ee0755afbb1284b70b42059154cd5a78",
+      "reserving_chain_ladder_code_v3": "c3b8462afa9f08a95e996bf95380bd2ebed97fa72715f09de2c283d0954f0db5",
+      "reserving_chain_ladder_code_v4": "d2776a5fe8c7b4291849521e3e3daacb47f2e942974886185efe998eb5748305",
+      "reserving_chain_ladder_code_v5": "f2a3789c9904cb7e694f8006bb10645a5222e88745c6b8f7fce6fa106742b2a4",
+      "reserving_chain_ladder_code_v6": "4928020d97dd6832a40cbb9bf83805da4b5f2ef826116516fc5193eb9f264fcb",
+      "risk_lognormal_var_tvar": "35cd43afc3c304f16e2cfe5a80c10585b24d22da2fb7132c151dbe9883d9452a",
+      "risk_lognormal_var_tvar_v2": "d9a321aaae011f60b43b1a7645acee49209db7d41126a41220857e128725d88d",
+      "risk_lognormal_var_tvar_v3": "24d0b42f2997609a8ecaaa57a8fad9ab12d53e6092c8d2d4cf8e3190e6598981",
+      "risk_lognormal_var_tvar_v4": "ce1d70b2b990a4c2ff60d9994ce0d2c4b5efba260f1e2be3272ef75042769f04",
+      "risk_lognormal_var_tvar_v5": "0bc5e404c013f7a70b54e86f0dceaf3645ed39f867191095a5d674b5ac5814e9",
+      "risk_lognormal_var_tvar_v6": "ce434cd689986900c0332c1a0cb387f5f59681645bf3fd8e9d466f13648d7c2b",
+      "statistics_exponential_mle": "ea3d55096a16b9632d63b969219a344a636cf5cae18fcf3f4c4fd23f895d5a85",
+      "statistics_exponential_mle_v2": "21acf43707ec3fcd1de53c0a10b7cf40912463b1af1a7e1df28877cb4d0920ff",
+      "statistics_exponential_mle_v3": "f6e9e4a15b1bf09ce9da85e1f8acd848e9d95c9767e14b2291e5dcb026a24322",
+      "statistics_exponential_mle_v4": "51da280bf4063f6d7aa2e18ece033e54d0fe426cd566efd75068d0cc9d46a252",
+      "statistics_exponential_mle_v5": "b2b77a7eab89fec95704fd923542febd52cf5acaa0b30d7936e776c88dc131ea",
+      "statistics_exponential_mle_v6": "0b634772a19ca86a7aa8193102d5972fddb109a96614764b91aeb5d8af2c953f",
+      "survival_kaplan_meier": "ca73e5d951dfdf5f83689c4f129b52ce034a8280196f4e8d11b6e2dda9a55b89",
+      "survival_kaplan_meier_v2": "5210c8d7647f6c20cdf0492858f810abe86aef3d0a0b45a191d1365d192a87cf",
+      "survival_kaplan_meier_v3": "3e72933e729efad680243316848d2733aff909df0497db0058d6cec39f02a6c5",
+      "survival_kaplan_meier_v4": "cf3fb580a10625a87c3c240503d2b6349a4590ffc56e0bc6be4654f7b9adf6c1",
+      "survival_kaplan_meier_v5": "90184135c070c6df717a185fda40c220eaf2c3eaccec3b23ee7ea146ff999d74",
+      "survival_kaplan_meier_v6": "337e25b7e72c5b9ff13b3d48859bfaa7c744ba7117078deddeb0f6c8cc321f62",
+      "validation_missing_life_inputs": "195b80dcd264a1c2871dbca99767fd117630f528ac901d7f0d28be4ddded34b0",
+      "validation_missing_life_inputs_v2": "6e863a3c6ba50b73b68bc6a6fcb6d0aacc56cc8a2f712d336623d99252489ac7",
+      "validation_missing_life_inputs_v3": "7f51b04a77685fbde2999fbca806604fcadacf7f63cd361a57db1ed66b1a80a9",
+      "validation_missing_life_inputs_v4": "a70f459f5be86f8329cd2544c949c30469175b1b3738c4db9a94d641b8eb58dd",
+      "validation_missing_life_inputs_v5": "b221f34eab4039ccc9de61ebc892ee1190a2d6b3fc74d87bad1200910e735685",
+      "validation_missing_life_inputs_v6": "d463a8dd6c0b739c4304d7dd0365750add465897258916ff64502dea7f1c640c",
+      "validation_pricing_defects": "ed14edbab4e23cc7408a232a8be02872b3a5ebc2e639a2f49dfe654626d46f01",
+      "validation_pricing_defects_v2": "487276da9588f26d6c7809244d4e164b88a7be8442ed566f262fef81c728afd1",
+      "validation_pricing_defects_v3": "36a07bcdc8468f52988f4072df2716bc76e2d28e25e13c234c30bfb57a441ab3",
+      "validation_pricing_defects_v4": "03fbc3f1046a329c71198014bbb2cbcf61787f58d9326c3640444db9d3380caa",
+      "validation_pricing_defects_v5": "ce173b235076597ec2e02e163495128dda5c0e71ccbec6893120cd65ce011620",
+      "validation_pricing_defects_v6": "15db0b11ac98b74518fe6d9f13ba7d471fa33a97ab036460d36f560baf46017c"
+    },
+    "task_ids": [
+      "life_survival_5y",
+      "pricing_compound_poisson",
+      "reserving_chain_ladder_code",
+      "risk_lognormal_var_tvar",
+      "survival_kaplan_meier",
+      "statistics_exponential_mle",
+      "validation_pricing_defects",
+      "validation_missing_life_inputs",
+      "life_survival_5y_v2",
+      "pricing_compound_poisson_v2",
+      "reserving_chain_ladder_code_v2",
+      "risk_lognormal_var_tvar_v2",
+      "survival_kaplan_meier_v2",
+      "statistics_exponential_mle_v2",
+      "validation_pricing_defects_v2",
+      "validation_missing_life_inputs_v2",
+      "life_survival_5y_v3",
+      "pricing_compound_poisson_v3",
+      "reserving_chain_ladder_code_v3",
+      "risk_lognormal_var_tvar_v3",
+      "survival_kaplan_meier_v3",
+      "statistics_exponential_mle_v3",
+      "validation_pricing_defects_v3",
+      "validation_missing_life_inputs_v3",
+      "life_survival_5y_v4",
+      "pricing_compound_poisson_v4",
+      "reserving_chain_ladder_code_v4",
+      "risk_lognormal_var_tvar_v4",
+      "survival_kaplan_meier_v4",
+      "statistics_exponential_mle_v4",
+      "validation_pricing_defects_v4",
+      "validation_missing_life_inputs_v4",
+      "life_survival_5y_v5",
+      "pricing_compound_poisson_v5",
+      "reserving_chain_ladder_code_v5",
+      "risk_lognormal_var_tvar_v5",
+      "survival_kaplan_meier_v5",
+      "statistics_exponential_mle_v5",
+      "validation_pricing_defects_v5",
+      "validation_missing_life_inputs_v5",
+      "life_survival_5y_v6",
+      "pricing_compound_poisson_v6",
+      "reserving_chain_ladder_code_v6",
+      "risk_lognormal_var_tvar_v6",
+      "survival_kaplan_meier_v6",
+      "statistics_exponential_mle_v6",
+      "validation_pricing_defects_v6",
+      "validation_missing_life_inputs_v6"
+    ],
+    "task_prompt_hashes": {
+      "life_survival_5y": "7bea2bf0b7de3078e419a11b09ffb2791c28f999be1955c9e4f6a47ebfca2809",
+      "life_survival_5y_v2": "514258733f5b221929a4cc56d5869997797a3cb3b40fc58a38d3695765830aa8",
+      "life_survival_5y_v3": "163f9138c7781c8a050e8fdc0c50803b454a7a36f52a2d2e4476346e65ccde2c",
+      "life_survival_5y_v4": "34781e13cb090eda1feb05d138aa12d2ee76a09e8ea64550326a2f5eb97d0eaa",
+      "life_survival_5y_v5": "1ad727a648190b59d42f881311b3e6efeef413f9a1980faa27e12d0b31d2e922",
+      "life_survival_5y_v6": "c01419ebd0564432dc375e4cea09655ab3d41b5b07cc7a7807cde2f8cf62f709",
+      "pricing_compound_poisson": "868b1d89adf2c5b4edd8aa495b1c31925be4795291620148be8bce1baba64488",
+      "pricing_compound_poisson_v2": "a1e4d940fb1f048c6a5d2eafc5b0b26ffaa4af480de2408a9c6f0f3c3fef4ec8",
+      "pricing_compound_poisson_v3": "3bae9a6ee9493bdb4a46aa21563db762602db5f6fb00c436c619d85650a063dd",
+      "pricing_compound_poisson_v4": "2f520b314df34f987383413572cac491b78efd6051a1b99b3104fe28bd1949e9",
+      "pricing_compound_poisson_v5": "2b508b290647ea01c5add44f0381994ab11bfe28d8b6279f5bc2d302e4bda06e",
+      "pricing_compound_poisson_v6": "bfef733ae06e2ae00a02dab7b25c496e582c8a4e8c5b2b6e002652280352c8ca",
+      "reserving_chain_ladder_code": "b45f66890963234d1664942316bdd23d693b01943dd280a3e901e74e3e4af27e",
+      "reserving_chain_ladder_code_v2": "0e9e1b35bfe634e7e039223b20aad24cc67ea416880ea192f5045827283935b2",
+      "reserving_chain_ladder_code_v3": "c9bdd110469083c35459db2daadc0fdeb99691b00619c1508c62ec13ed93ab9a",
+      "reserving_chain_ladder_code_v4": "9c7adb4b126b747e7872465385cda26c21ccfb5311d7c04072f862a0524ab538",
+      "reserving_chain_ladder_code_v5": "770d47a3ccc26b6f873c2aaa35f62f0c599d046719c36b6d715ddfa40d5850ea",
+      "reserving_chain_ladder_code_v6": "0ed756035e51619a3f7d1486470a8468962a0bf0b1420ff6c05cab9fca76ffb2",
+      "risk_lognormal_var_tvar": "b0d736350e149bce76a5e0f6109eba137c7c97ab6a29acee0af48a3d9aa7903f",
+      "risk_lognormal_var_tvar_v2": "7516d6e010af9761905812ba95223d7061c9aa434f0049c672dd54655df57ba0",
+      "risk_lognormal_var_tvar_v3": "b6b93895e9e4c5be6c8b7d4646826c77ad009b035504aea8e586c859709bec83",
+      "risk_lognormal_var_tvar_v4": "1a063674b33d8ccd7ba37ccb4c9b1816582e6985f6c01e97689ec46d0dbbc936",
+      "risk_lognormal_var_tvar_v5": "751ad655f4b3e33de1c4842a09a4b3f574471a2a03d06029ad56658db64bca87",
+      "risk_lognormal_var_tvar_v6": "2980750fff742d6bd900de56c38776dbc6a186b706b11c137e696c0bb838a17d",
+      "statistics_exponential_mle": "61ff47588bafbeb3a56f7f5e3004ca7db5591b79af3ce747c7341c56c938704a",
+      "statistics_exponential_mle_v2": "cd64f23d26063286c8ac8fe8500e9f7ec1050a6e53653bc50c11760619fde0ae",
+      "statistics_exponential_mle_v3": "413e23e96817f7da87314d0b8963e58d53f60951f858891ed41cf23b30d67c51",
+      "statistics_exponential_mle_v4": "c79b9fd3457d6d4b3e4d8e7f998effcd4fca33b2280ca7cf7ec960a59793e351",
+      "statistics_exponential_mle_v5": "a4d6814263f78b11ee1b27d7a6d8b45bc4994631d6bdec334d9e6bd36c6d74e7",
+      "statistics_exponential_mle_v6": "946cf6f2476eb68bc34bdbb07481989e1d3a57d216fb8719bb5a5738ca8e147b",
+      "survival_kaplan_meier": "aad66ccd3221253dc68c69d25a18f4ac3d98ccc0a5a06b30cf83c16fb431399f",
+      "survival_kaplan_meier_v2": "2357bb71cb8f9d47ab01ba80a7bfc339808b82295e9cd24dbaea9351ab69ab67",
+      "survival_kaplan_meier_v3": "8e1f2abb005df7d1e6a726ea6b96735281015cfc3c0a33453f2a48b9deb960d6",
+      "survival_kaplan_meier_v4": "fc6620523e80faaa8d4fb588ceebfa00dd803adece6124c7380d41b2a14d8a2e",
+      "survival_kaplan_meier_v5": "a9504b824f207ce02fd8fc77150b3e0aca8b13a2226595d8684cf33c4b8313d7",
+      "survival_kaplan_meier_v6": "cebd6098bcd0cfd94309bf9deb754407264474250d5591b7683fda8506180fee",
+      "validation_missing_life_inputs": "12773e1e1559080120ecffd1875817a223275163d764b3f54dbd0f32f2ab8e17",
+      "validation_missing_life_inputs_v2": "12773e1e1559080120ecffd1875817a223275163d764b3f54dbd0f32f2ab8e17",
+      "validation_missing_life_inputs_v3": "0d50ce9915c7383007f1fc4055f8ab9501861ec7ccd725b77c49514d58c15c85",
+      "validation_missing_life_inputs_v4": "bae757922f7a365f790d27ba8b369d5e844f44f31388301bdccc230c28b9e95a",
+      "validation_missing_life_inputs_v5": "12773e1e1559080120ecffd1875817a223275163d764b3f54dbd0f32f2ab8e17",
+      "validation_missing_life_inputs_v6": "0d50ce9915c7383007f1fc4055f8ab9501861ec7ccd725b77c49514d58c15c85",
+      "validation_pricing_defects": "7c357184d1cc28687bb29e40f7fba3ed867f72f31c9b317db537198e26a4ef67",
+      "validation_pricing_defects_v2": "3725121da0888760aca64d08cae9cc107c273fac4c1b7477c55b3c43b293435c",
+      "validation_pricing_defects_v3": "c053042389324e426ed82334f9fa5456612e5f339e5522355a7a2e7cc0dedc31",
+      "validation_pricing_defects_v4": "c5fd0ed9bf0a37c7efcd812c863a7a11cd1e91b6cd48e13bcd03762a44da4ebd",
+      "validation_pricing_defects_v5": "c1b4f0dbf647309913c4d4075ea6dbbb26460113ab62e818af1937e0575e6a80",
+      "validation_pricing_defects_v6": "d5496911d79585d0fa35bd04f58b35f7a2d6951f9eae66789052216029a5b3b2"
+    }
+  }
+}
